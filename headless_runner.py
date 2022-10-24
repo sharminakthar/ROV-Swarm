@@ -43,12 +43,13 @@ class HeadlessRunner():
         
     def execute_single(self, directory):        
         simulator = Simulator(self.settings)  
-
+        print("starting")
         for step in range(0, self.steps):
-            simulator.update(log_data=True)          
-            print(f"\rProgress: [ {step+1} / {self.steps} ] simulation steps", end="")
+            simulator.update(log_data=False) 
+            # Commenting out print statement decreases run time         
+            #print(f"\rProgress: [ {step+1} / {self.steps} ] simulation steps", end="")
 
-        output_metrics_log(simulator, directory)
+        #output_metrics_log(simulator, directory)
         output_raw_data_log(simulator, directory)
         
     def execute_multiple(self, directory, count):
