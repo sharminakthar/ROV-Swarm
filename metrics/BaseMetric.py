@@ -14,10 +14,14 @@ class BaseMetric(ABC):
         pass
 
     def run_metric(self, folder):
+        results = []
         for run in os.listdir(folder):
             data = pd.read_csv(run)
-            
-    
+            result = self.calculate(data)
+            results.append(result)
+        
+        return results
+
     @abstractmethod
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
         """
