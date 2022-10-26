@@ -13,16 +13,30 @@ class BaseMetric(ABC):
     def read_csv(self, csv_file: str) -> pd.DataFrame:
         pass
 
-    def run_metric(self, folder) -> pd.DataFrame:
-        results = {}
-        for i, run in enumerate(os.listdir(folder)):
-            data = pd.read_csv(run)
-            result = self.calculate(data)
-            if i == 0:
-                results["Timestep"] = result[0]
-            results[str(i)] = result[1]
+    def run_metric(self, folder):
+        """
         
-        return pd.DataFrame(results)
+        Returns
+            A list of dataframes, where each dataframe holds the results of repeated runs from one variable value. The
+            dataframes contain one column for timestep, and n columns for eachr run. 
+        """
+        ind_var_output = []
+        for ind_var in os.listdir(folder):
+            ind_var = folder + "\\" + ind_var
+            results = {}
+            dirs = os.listdir(ind_var)
+            dirs = list(filter(lambda x: x != "metadata.csv", dirs))
+            for i, run in enumerate(dirs):
+                run = ind_var + "\\" + run + "\\" + "raw_data_log.csv"
+                data = pd.read_csv(run)
+                result = self.calculate(data)
+                if i == 0:
+                    results["Timestep"] = result.iloc[:, 0]
+                results[str(i)] = result.iloc[:, 1]
+            
+            ind_var_output.append(pd.DataFrame(results))
+        
+        return ind_var_output
 
     @abstractmethod
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
