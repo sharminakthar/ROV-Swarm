@@ -75,6 +75,8 @@ class BaseMetric(ABC):
 
 
     def mode(self, data: pd.DataFrame) -> pd.DataFrame:
-        return np.mod(data.iloc[:, 1])
+        vals, counts = np.unique(data.iloc[:, 1], return_counts=True)
+        return np.argwhere(counts == np.max(counts))
+       
 
 
