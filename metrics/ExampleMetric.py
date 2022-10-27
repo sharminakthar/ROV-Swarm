@@ -1,5 +1,4 @@
-import os
-import sys
+from pathlib import Path
 from BaseMetric import BaseMetric
 import pandas as pd
 
@@ -13,5 +12,10 @@ class ExampleMetric(BaseMetric):
 
 if __name__ == "__main__":
     metric = ExampleMetric()
-    data = metric.run_metric("..\\out\\FLOCK_SIZE")
+
+    # Replace path name with absolute path if not running from inside the metrics folder
+    path_name = "../out/FLOCK_SIZE"
+    p = Path(path_name)
+
+    data = metric.run_metric(p)
     print(metric.std(data[0]))
