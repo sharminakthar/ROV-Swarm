@@ -11,9 +11,6 @@ class BaseMetric(ABC):
     def __init__(self):
         pass
 
-    def read_csv(self, csv_file: str) -> pd.DataFrame:
-        pass
-
     def run_metric(self, folder):
         """
         
@@ -22,8 +19,6 @@ class BaseMetric(ABC):
             dataframes contain one column for timestep, and n columns for eachr run. 
         """
         ind_var_output = []
-        print(folder)
-        print(os.listdir(folder))
         for ind_var in os.listdir(folder):
             ind_var = folder + "\\" + ind_var
             results = {}
