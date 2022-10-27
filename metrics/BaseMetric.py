@@ -1,6 +1,7 @@
 import pandas as pd
 from abc import ABC, abstractmethod
 import os
+import numpy as np
 
 class BaseMetric(ABC):
     """
@@ -21,6 +22,8 @@ class BaseMetric(ABC):
             dataframes contain one column for timestep, and n columns for eachr run. 
         """
         ind_var_output = []
+        print(folder)
+        print(os.listdir(folder))
         for ind_var in os.listdir(folder):
             ind_var = folder + "\\" + ind_var
             results = {}
@@ -51,3 +54,20 @@ class BaseMetric(ABC):
             A pandas dataframe with one column for the timestep and another column for the metric.
         """
         pass
+
+
+    def max(self, data: pd.DataFrame) -> pd.DataFrame:
+        return np.max(data.iloc[:, 1])
+
+    def min():
+        return np.min(data.iloc[:, 1])
+
+
+    def std():
+        return np.std(data.iloc[:, 1])
+
+
+    def mean():
+        return np.mean(data.iloc[:, 1])
+
+
