@@ -20,8 +20,6 @@ class SeparationMin(BaseMetric):
         #df = df[["Timestep_x", "Drone ID_x", "Drone ID_y", "Distances"]]
 
         min_distance = distances.min()
-        #df["Minimum Separation"] = min_distance
-        #df = df[["Timestep_x", "Minimum Separation"]]
         return(pd.Series([df["Timestep_x"].iloc[0], min_distance]))
 
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
