@@ -18,7 +18,7 @@ class BaseMetric(ABC):
             A list of dataframes, where each dataframe holds the results of repeated runs from one variable value. The
             dataframes contain one column for timestep, and n columns for eachr run. 
         """
-        ind_var_output = []
+        ind_var_output = {}
         for ind_var in folder.iterdir():
             results = {}
             dirs = filter(lambda x: x.is_dir(), ind_var.iterdir())
@@ -30,7 +30,8 @@ class BaseMetric(ABC):
                     results["Timestep"] = result.iloc[:, 0]
                 results[str(i)] = result.iloc[:, 1]
             
-            ind_var_output.append(pd.DataFrame(results))
+            #ind_var_output.append(pd.DataFrame(results))
+            ind_var_output[ind_var.name] = pd.DataFrame(results)
         
         return ind_var_output
 

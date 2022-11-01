@@ -28,7 +28,7 @@ if __name__ == "__main__":
     p = Path(path_name)
 
     data = metric.run_metric(p)
-    for i, d in enumerate(data):
-        plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=i)
+    for k,d in data.items():
+        plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=k)
     plt.legend()
     plt.show()
