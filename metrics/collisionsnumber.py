@@ -30,7 +30,7 @@ class CollisionsNumber(BaseMetric):
         print("grouping and applying")
 
         df= df.groupby('Timestep').apply(self.myfunction).reset_index()
-        df = df.rename(index={0: "Timestep", 1: "Collisions"})
+        df = df.rename(columns={0: "Collisions"})
 
         print(df)
         return(df)
