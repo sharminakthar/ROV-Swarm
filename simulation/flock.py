@@ -79,6 +79,10 @@ class Flock:
     def get_positions(self):
         """This function returns the positions of all the drones in the flock as a 2xcount array."""
         return np.asarray([d.get_exact_position() for d in self.drones]).T.reshape((2, self.flock_size))
+    
+    def get_approx_positions(self):
+        """This function returns the approximate positions of all the drones in the flock as a 2xcount array."""
+        return np.asarray([d.get_approximated_position() for d in self.drones]).T.reshape((2, self.flock_size))
 
     def get_speeds(self):
         """This function returns the sppeds of all the drones in the flock as a list"""
