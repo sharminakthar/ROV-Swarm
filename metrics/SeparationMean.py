@@ -12,7 +12,8 @@ class SeparationMean(BaseMetric):
         super().__init__()
 
     def myfunction(self, data: pd.DataFrame) -> pd.DataFrame:
-        df = data.merge(data, how='cross')
+        df = data.merge(data, how="cross")
+        df = df.loc[df["Drone ID_x"] < df["Drone ID_y"]]
 
         distances = np.sqrt( ((df["X Position_x"] - df["X Position_y"]).pow(2)) + ((df["Y Position_x"] - df["Y Position_y"]).pow(2)))
         distances = distances[distances > 0]
