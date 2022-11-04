@@ -49,6 +49,7 @@ class Simulator:
     def get_raw_data_frame(self):
         [x_positions, y_positions] = self.flock.get_positions()
         [x_velocities, y_velocities] = self.flock.get_velocities()
+        [x_approx_positions, y_approx_positions] = self.flock.get_approx_positions()
 
         data = {
             "Timestep": [self.step] * self.flock.get_size(),
@@ -57,6 +58,8 @@ class Simulator:
             "Y Position" : y_positions,
             "X Velocity" : x_velocities,
             "Y Velocity" : y_velocities,
+            "X Approx Position": x_approx_positions,
+            "Y Approx Position": y_approx_positions
         }
 
         return pd.DataFrame(data=data)
