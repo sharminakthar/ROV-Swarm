@@ -23,7 +23,7 @@ if __name__ == "__main__":
     metric = PerceivedPosMetric()
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "../out/FLOCK_SIZE"
+    path_name = "../out2/HEADING_ERROR"
     p = Path(path_name)
 
     data = metric.run_metric(p)
