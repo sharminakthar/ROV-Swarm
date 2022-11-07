@@ -27,7 +27,16 @@ class Speed(BaseMetric):
 
 if __name__ == "__main__":
     metric = Speed()
-    path_name = "../out/FLOCK_SIZE"
+
+    # Replace path name with absolute path if not running from inside the metrics folder
+    path_name = "/Users/sharmin/Desktop/GDP/swarm-simulator/out/SPEED_ERROR"
     p = Path(path_name)
+
     data = metric.run_metric(p)
-    print(metric.std(data[0]))
+    for k,d in data.items():
+        plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=k)
+    plt.legend()
+    plt.xlabel("Timestep")
+    plt.ylabel("Speed of flock")
+    plt.title("The Average speed of the flock with varying Speed error")
+    plt.show()
