@@ -20,8 +20,8 @@ class CollisionsNumber(BaseMetric):
 
         df["Distances"] = distances
 
-        df.loc[df["Distances"] < 7.5, 'Less_than_separation_distance'] = 'True'
-        df.loc[df["Distances"] >= 7.5, 'Less_than_separation_distance'] = 'False'
+        df.loc[df["Distances"] < 7.5, 'Less_than_separation_distance'] = True
+        df.loc[df["Distances"] >= 7.5, 'Less_than_separation_distance'] = False
 
         collisions = df.Less_than_separation_distance[df.Less_than_separation_distance==True].count()
         return(collisions)
@@ -33,7 +33,7 @@ class CollisionsNumber(BaseMetric):
         df= df.groupby('Timestep').apply(self.myfunction).reset_index()
         df = df.rename(columns={0: "Collisions"})
 
-        #print(df)
+        print(df)
         return(df)
 
 if __name__ == "__main__":
