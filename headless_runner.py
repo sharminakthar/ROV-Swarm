@@ -3,6 +3,7 @@ from flock_settings import FlockSettings, Setting
 from headless.parser import Parser
 from simulator import Simulator
 from util.csv_helpers import *
+import time
 
 
 class HeadlessRunner():
@@ -42,10 +43,10 @@ class HeadlessRunner():
             self.execute_multiple(directory, self.samples)
         
     def execute_single(self, directory):        
-        simulator = Simulator(self.settings)  
+        simulator = Simulator(self.settings, self.steps)  
         print("starting")
         for step in range(0, self.steps):
-            simulator.update(log_data=False) 
+            simulator.update(log_data=True) 
             # Commenting out print statement decreases run time         
             #print(f"\rProgress: [ {step+1} / {self.steps} ] simulation steps", end="")
 
