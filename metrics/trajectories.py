@@ -6,7 +6,7 @@ from orientations import OrientationMetric
 from matplotlib import pyplot as plt
 
 
-class ExampleMetric(BaseMetric):
+class TrajectoryMetric(BaseMetric):
     #TARGET_X = 2500
     #TARGET_Y = 2500
 
