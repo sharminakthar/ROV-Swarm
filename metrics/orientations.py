@@ -12,7 +12,7 @@ class OrientationMetric(BaseMetric):
 
 
 
-    def getOrientations(self, data: pd.DataFrame) -> pd.DataFrame:
+    def getOrientations(data: pd.DataFrame) -> pd.DataFrame:
         xvels = data.iloc[:, 1]
         yvels = data.iloc[:, 2]
         bearing = 0
