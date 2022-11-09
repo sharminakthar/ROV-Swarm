@@ -52,7 +52,7 @@ if __name__ == "__main__":
     for k,d in data.items():
         plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=k)
     plt.legend()
-    plt.title("Standard deviation of rientations with varying Range error")
+    plt.title("Standard deviation of orientations with varying Range error")
     plt.xlabel("Timestep")
     plt.ylabel("Standard deviation of orientations")
     plt.show()
