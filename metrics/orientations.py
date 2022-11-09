@@ -11,13 +11,12 @@ class OrientationMetric(BaseMetric):
         super().__init__()
     
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
-        df = data[["Timestep","X Velocity", "Y Velocity" ]]
-        groups = df.groupby("Timestep")
+        df = data[["Timestep", "X Velocity", "Y Velocity"]]
+       
         xvels = df["X Velocity"]
         yvels = df["Y Velocity"]
         bearing = 0
         bearings = []
-        print(len(xvels))
         for x in range(len(xvels)):
            
                
@@ -29,20 +28,17 @@ class OrientationMetric(BaseMetric):
 
             if int(xvels[x]) < 0 and int(yvels[x]) < 0:
                 bearing = 180 + (90 - angle)
-            elif int(xvels[x]) < 0 and int(yvels[x]) >= 0:
+            elif int(xvels[x]) < 0 and int(yvels[x]) >= 0:  
                 bearing = 270 + angle
             elif int(xvels[x]) >= 0 and int(yvels[x]) < 0:
                 bearing = (90 + angle)
             elif int(xvels[x]) >= 0 and int(yvels[x]) >= 0:
                 bearing = (90 - angle)
             bearings.append(bearing)
-        print(bearings)
-        print("done!")
         df = df[["Timestep"]]
-
-        print("inserting")
-        df.insert(1, "Orientations", bearings, True)
-        print("finish")
+        new_df = df.assign(Orientations = bearings)
+        groups = new_df.groupby("Timestep").std()
+        df = df.merge(groups, on="Timestep")
         return df
 
 if __name__ == "__main__":
@@ -53,8 +49,7 @@ if __name__ == "__main__":
     p = Path(path_name)
 
     data = metric.run_metric(p)
-    print("done")
-    for i, d in enumerate(data):
-        plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=i)
+    for k,d in data.items():
+        plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=k)
     plt.legend()
     plt.show()
