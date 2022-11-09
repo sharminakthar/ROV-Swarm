@@ -1,0 +1,1 @@
+drone_0 = drone_0.drop(columns = "Drone ID")
