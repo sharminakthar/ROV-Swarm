@@ -72,7 +72,7 @@ class MultiRunner():
                     f.write(str(seed))
         
     def execute_single(self, directory, settings):        
-        simulator = Simulator(settings)  
+        simulator = Simulator(settings, self.steps)  
 
         for step in range(0, self.steps):
             simulator.update(log_data=True)          
