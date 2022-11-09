@@ -18,6 +18,7 @@ class CentreDistMetric(BaseMetric):
         distances = np.sqrt(((df["X Position"] - df["X Centre"]).pow(2) + (df["Y Position"] - df["Y Centre"]).pow(2)))
         df["Distances"] = distances
         df = df[["Timestep", "Distances"]].groupby("Timestep").mean().reset_index()
+        print(df)
         return df
 
 if __name__ == "__main__":
