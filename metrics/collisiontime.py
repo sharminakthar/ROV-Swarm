@@ -19,8 +19,8 @@ class CollisionTime(BaseMetric):
 
         df["Distances"] = distances
 
-        df.loc[df["Distances"] < 75, 'Less_than_separation_distance'] = True
-        df.loc[df["Distances"] >= 75, 'Less_than_separation_distance'] = False
+        df.loc[df["Distances"] < 7.5, 'Less_than_separation_distance'] = True
+        df.loc[df["Distances"] >= 7.5, 'Less_than_separation_distance'] = False
 
         collisions = df.Less_than_separation_distance[df.Less_than_separation_distance==True].count()
 
@@ -41,7 +41,15 @@ class CollisionTime(BaseMetric):
 
 if __name__ == "__main__":
     metric = CollisionTime()
-    path_name = "../out/FLOCK_SIZE"
-    p = Path(path_name) 
+    path_name = "/Users/sharmin/Desktop/GDP/swarm-simulator/out/ACCELERATION_CALIBRATION_ERROR"
+    p = Path(path_name)
+    print("running")
     data = metric.run_metric(p)
-    print(metric.std(data[0]))
+
+    for k,d in data.items():
+        plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=k)
+    plt.legend()
+    plt.title("Time until first collision with varying Acceleration calibration error")
+    plt.xlabel("Timestep")
+    plt.ylabel("Time until first collision")
+    plt.show()
