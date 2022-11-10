@@ -6,6 +6,7 @@ from BaseMetric import BaseMetric
 from pandas import DataFrame
 from pandas import *
 from matplotlib import pyplot as plt
+import time
 
 class Separation(BaseMetric):
 
@@ -17,20 +18,23 @@ class Separation(BaseMetric):
             quit()
         super().__init__()
 
-    def myfunction(self, df: pd.DataFrame, indices) -> pd.DataFrame:
-        la, lb = len(df), len(df)
-        ia2, ib2 = np.broadcast_arrays(*np.ogrid[:la,:lb])
-        x = np.column_stack([df.values[ia2[indices],1:], df.values[ib2[indices],1:]])
-        distances = np.linalg.norm(x[:,:2] - x[:,2:], axis=1)
+    def myfunction(self, df: pd.DataFrame, index1, index2) -> pd.DataFrame:
+        arr1 = df.to_numpy()[index1]
+        arr2 = df.to_numpy()[index2]
+        distances = np.linalg.norm(arr1[:,1:] - arr2[:,1:], axis=1)
         return self.reduction_func(distances)
 
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
         df = data[["Timestep", "X Position", "Y Position"]]
-        i = len(df.loc[df["Timestep"] == 0])
-        indices = np.triu_indices(5,1)
-        df1= df.groupby('Timestep').apply(self.myfunction, indices=indices).reset_index()
 
-        return(df1)
+        i = len(df.loc[df["Timestep"] == 0])
+        ia2, ib2 = np.broadcast_arrays(*np.ogrid[:i,:i])
+        indices = np.triu_indices(5,1)
+        index1 = ia2[indices]
+        index2 = ib2[indices]
+
+        df1= df.groupby('Timestep').apply(self.myfunction, index1=index1, index2=index2).reset_index()
+        return df1
 
 if __name__ == "__main__":
     metric = Separation(reduction="min")
@@ -40,6 +44,7 @@ if __name__ == "__main__":
     p = Path(path_name)
     print("running")
     data = metric.run_metric(p)
+
     for k,d in data.items():
         plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=k)
     plt.legend()
