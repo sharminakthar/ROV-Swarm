@@ -29,7 +29,7 @@ class Separation(BaseMetric):
 
         i = len(df.loc[df["Timestep"] == 0])
         ia2, ib2 = np.broadcast_arrays(*np.ogrid[:i,:i])
-        indices = np.triu_indices(5,1)
+        indices = np.triu_indices(i,1)
         index1 = ia2[indices]
         index2 = ib2[indices]
 
