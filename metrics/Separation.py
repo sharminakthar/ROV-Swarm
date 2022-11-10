@@ -40,13 +40,15 @@ if __name__ == "__main__":
     metric = Separation(reduction="min")
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "../out/BANDWIDTH"
+    path_name = "/Users/sharmin/Desktop/GDP/swarm-simulator/out/SPEED_ERROR"
     p = Path(path_name)
-    print("running")
-    data = metric.run_metric(p)
 
+    data = metric.run_metric(p)
     for k,d in data.items():
         plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=k)
     plt.legend()
+    plt.xlabel("Timestep")
+    plt.ylabel("Separation distance")
+    plt.title("Separation distance of the flock with varying Speed error")
     plt.show()
     
