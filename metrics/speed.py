@@ -1,6 +1,6 @@
 import os
 import sys
-from BaseMetric import BaseMetric
+from .BaseMetric import BaseMetric
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
