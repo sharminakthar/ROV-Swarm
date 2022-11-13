@@ -14,8 +14,7 @@ class TrajectoryMetric(BaseMetric):
         #STRAIGHT LINE HEADING:
         targX = 2500
         targY = 2500
-        new_df = df
-        new_df = new_df.assign(XPos = df["X Position"].sub(targX))
+        new_df = df.assign(XPos = df["X Position"].sub(targX))
         new_df = new_df.assign(YPos = df["Y Position"].sub(targY))
 
         new_df.iloc[:,1].apply(lambda x: x*-1)
@@ -29,16 +28,16 @@ class TrajectoryMetric(BaseMetric):
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
         df = data[["Timestep", "X Velocity", "Y Velocity"]]
         
-        bearings = HelperFunctions.getOrientations(df)
+        bearings = HelperFunctions.getOrientations(self,df)
         optimal_df = data[["Timestep", "X Position", "Y Position"]]
 
         optimalBearings = self.optimaltrajectories(optimal_df)
         bearing_diff = abs(np.subtract(bearings, optimalBearings))
 
         new_df = df.assign(Mean_Abs_Orientation_Error = bearing_diff)
+        print(new_df)
         new_df.drop(labels=['X Velocity', 'Y Velocity'], axis=1, inplace=True)
         groups = new_df.groupby("Timestep").mean()
-        print(groups)
         df = df[["Timestep"]]
         df = df.merge(groups, on="Timestep")
 
@@ -49,7 +48,7 @@ if __name__ == "__main__":
     metric = TrajectoryMetric()
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "../out/FLOCK_SIZE"
+    path_name = "../FOLLOW_CIRCLE_EXTENDED/FLOCK_SIZE"
     p = Path(path_name)
 
     data = metric.run_metric(p)
