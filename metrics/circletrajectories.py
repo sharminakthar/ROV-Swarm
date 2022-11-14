@@ -19,6 +19,7 @@ class TrajectoryMetric(BaseMetric):
         r = 1000
         df1 = abs(df["X Position"] - targx)
         df2 = abs(df["Y Position"] - targy)
+        print((df1.multiply(df1, fill_value=0) + df2.multiply(df2, fill_value=0))**0.5 - r)
         return (df1.multiply(df1, fill_value=0) + df2.multiply(df2, fill_value=0))**0.5 - r
 
 
@@ -37,7 +38,7 @@ if __name__ == "__main__":
     metric = TrajectoryMetric()
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "../FOLLOW_CIRCLE_EXTENDED/FLOCK_SIZE"
+    path_name = "../FOLLOW_CIRCLE_EXTENDED/SPEED_ERROR"
     p = Path(path_name)
 
     data = metric.run_metric(p)
