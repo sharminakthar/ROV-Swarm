@@ -9,7 +9,7 @@ from metrics.Density import Density
 from metrics.orientations import OrientationMetric
 from metrics.PerceivedPosMetric import PerceivedPosMetric
 from metrics.speed import Speed
-from metrics.trajectories import TrajectoryMetric
+#from metrics.trajectories import TrajectoryMetric
 
 from textwrap import wrap
 
@@ -22,8 +22,8 @@ units_list = {
     "FLOCK_SIZE": "",
     "BEARING_CALIBRATION_ERROR": "$^\circ$",
     "BEARING_ERROR": "$^\circ$",
-    "HEADING_CALIBRATION_ERROR": "r",
-    "HEADING_ERROR": "r",
+    "HEADING_CALIBRATION_ERROR": "$^\circ$",
+    "HEADING_ERROR": "$^\circ$",
     "PACKET_LOSS": "%",
     "RANGE_CALIBRATION_ERROR": "m",
     "RANGE_ERROR": "m",
@@ -114,14 +114,16 @@ class Grapher():
             save_data: bool
                 A flag that will denote whether or not to save the raw data from the metrics.
         """
-        data_folder = Path("out/Metric_Data")
-        fig_folder = Path("out/Graphs")
+        data_folder = directory / "Metric_Data"
+        fig_folder = directory / "Graphs"
         if save_data:
             data_folder.mkdir(parents=True, exist_ok=True)
         if graph_func:
             fig_folder.mkdir(parents=True, exist_ok=True)
         
         for var in directory.iterdir():
+            if var.name in ["Graphs", "Metric_Data"]:
+                continue
             for metric_name, metric_info in metric_list.items():
                 metric = metric_info["instance"]
                 name = "{} - {}".format(var.name, metric_name)
@@ -178,30 +180,30 @@ if __name__ == "__main__":
                         "axis_label": "Minimum Drone Separation",
                         "instance": Separation()
                         },
-                   "sep_max": {
-                        "desc": "Maximum separation between drones",
-                        "unit": "m",
-                        "axis_label": "Maximum Drone Separation",
-                        "instance": Separation(reduction="max")
-                        },
-                   "sep_mean": {
-                        "desc": "Mean separation between drones",
-                        "unit": "m",
-                        "axis_label": "Mean Drone Separation",
-                        "instance": Separation(reduction="mean")
-                        },
-                   "col_num": {
-                        "desc": "Total number of collisions",
-                        "unit": "",
-                        "axis_label": "Number of Collisions",
-                        "instance": CollisionsNumber()
-                        },
-                    "density": {
-                        "desc": "Density of the swarm",
-                        "unit": "m$^2$",
-                        "axis_label": "Swarm Density",
-                        "instance": Density()
-                        },
+                #    "sep_max": {
+                #         "desc": "Maximum separation between drones",
+                #         "unit": "m",
+                #         "axis_label": "Maximum Drone Separation",
+                #         "instance": Separation(reduction="max")
+                #         },
+                #    "sep_mean": {
+                #         "desc": "Mean separation between drones",
+                #         "unit": "m",
+                #         "axis_label": "Mean Drone Separation",
+                #         "instance": Separation(reduction="mean")
+                #         },
+                #    "col_num": {
+                #         "desc": "Total number of collisions",
+                #         "unit": "",
+                #         "axis_label": "Number of Collisions",
+                #         "instance": CollisionsNumber()
+                #         },
+                    # "density": {
+                    #     "desc": "Density of the swarm",
+                    #     "unit": "m$^2$",
+                    #     "axis_label": "Swarm Density",
+                    #     "instance": Density()
+                    #     },
                     "orient": {
                         "desc": "S.D of drone orientations",
                         "unit": "$^\circ$",
@@ -227,5 +229,7 @@ if __name__ == "__main__":
                     #     "instance": TrajectoryMetric()
                     #     }
                    }
-    p = Path("out/FOLLOW_CIRCLE")
+    
+    #i will add that, bar charts, and moving average in next iteration
+    p = Path("out/FOLLOW_CIRCLE_ULTRA_CAL")
     grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_line_chart)

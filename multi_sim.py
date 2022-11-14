@@ -13,18 +13,18 @@ class MultiRunner():
         # Stores the range of values to be used when testing
         self.variables = {
             "FLOCK_SIZE": [3 + i for i in range(7)],
-            "BANDWIDTH": [20 - (2 * i) for i in range(10)],
-            "PACKET_LOSS": [5 * i for i in range(10)],
-            "SPEED_ERROR": [round(0.6 * i,2) for i in range(10)],
-            "HEADING_ERROR": [round(0.02 * i,2) for i in range(10)],
-            "RANGE_ERROR": [round(0.6 * i,2) for i in range(10)],
-            "BEARING_ERROR": [round(1.6 * i,2) for i in range(10)],
-            "ACCELERATION_ERROR": [round(0.1 * i,2) for i in range(10)],
-            "SPEED_CALIBRATION_ERROR": [round(0.02 * i,2) for i in range(10)],
-            "HEADING_CALIBRATION_ERROR": [round(0.1 * i,2) for i in range(10)],
-            "RANGE_CALIBRATION_ERROR": [round(0.2 * i,2) for i in range(10)],
-            "BEARING_CALIBRATION_ERROR": [round(0.1 * i,2) for i in range(10)],
-            "ACCELERATION_CALIBRATION_ERROR": [round(0.01 * i,2) for i in range(10)]
+            "BANDWIDTH": [round(2 / pow(2,i),2) for i in range(10)],
+            "PACKET_LOSS": [3 * i + 70 for i in range(10)],
+            "SPEED_ERROR": [round(3 * i,2) for i in range(10)],
+            "HEADING_ERROR": [round(10 * i,2) for i in range(10)],
+            "RANGE_ERROR": [round(12 * i,2) for i in range(10)],
+            "BEARING_ERROR": [round(10 * i,2) for i in range(10)],
+            "ACCELERATION_ERROR": [round(3 * i,2) for i in range(10)],
+            "SPEED_CALIBRATION_ERROR": [round(3 * i,2) for i in range(10)],
+            "HEADING_CALIBRATION_ERROR": [round(10 * i,2) for i in range(10)],
+            "RANGE_CALIBRATION_ERROR": [round(12 * i,2) for i in range(10)],
+            "BEARING_CALIBRATION_ERROR": [round(10 * i,2) for i in range(10)],
+            "ACCELERATION_CALIBRATION_ERROR": [round(3 * i,2) for i in range(10)]
             }
         #Steps taken per simulation
         self.steps = steps
@@ -46,13 +46,13 @@ class MultiRunner():
         for scenario in scenarios:
             print("Scenario " + str(list(zip(var_names, scenario))))
             settings = FlockSettings()
-            settings.set(Setting["DRONE_OBJECTIVE"], DroneObjective.FIXED_HEADING)
+            settings.set(Setting["DRONE_OBJECTIVE"], DroneObjective.FOLLOW_CIRCLE)
 
             for var, val in zip(var_names, scenario):
                 settings.set(Setting[var], val)
             
             # Make directory name for a set of simulation parameters
-            directory = "out\\" + "-".join(var_names) + "\\" + "\\".join(str(s) for s in scenario)
+            directory = "out\\FIXED_HEADING_ULTRA_EXTENDED\\" + "-".join(var_names) + "\\" + "\\".join(str(s) for s in scenario)
             if not os.path.exists(directory):
                 os.makedirs(directory)
             output_metadata(settings, directory)
@@ -89,9 +89,13 @@ class MultiRunner():
         return [self.variables[var] for var in group]
 
 if __name__ == "__main__":
-    for var in ["FLOCK_SIZE", "BANDWIDTH", "PACKET_LOSS", "SPEED_ERROR", "HEADING_ERROR", 
-                "RANGE_ERROR", "BEARING_ERROR", "ACCELERATION_ERROR", "SPEED_CALIBRATION_ERROR",
-                "HEADING_CALIBRATION_ERROR", "RANGE_CALIBRATION_ERROR", "BEARING_CALIBRATION_ERROR",
-                "ACCELERATION_CALIBRATION_ERROR"]:
+    # for var in ["FLOCK_SIZE", "BANDWIDTH", "PACKET_LOSS", "SPEED_ERROR", "HEADING_ERROR", 
+    #             "RANGE_ERROR", "BEARING_ERROR", "ACCELERATION_ERROR", "SPEED_CALIBRATION_ERROR",
+    #             "HEADING_CALIBRATION_ERROR", "RANGE_CALIBRATION_ERROR", "BEARING_CALIBRATION_ERROR",
+    #             "ACCELERATION_CALIBRATION_ERROR"]:
+    # for var in ["FLOCK_SIZE", "BANDWIDTH", "PACKET_LOSS", "SPEED_ERROR", "HEADING_ERROR", 
+    #             "RANGE_ERROR", "BEARING_ERROR", "ACCELERATION_ERROR"]:
+    for var in ["BEARING_CALIBRATION_ERROR", "RANGE_CALIBRATION_ERROR", "SPEED_CALIBRATION_ERROR",
+                "HEADING_CALIBRATION_ERROR","ACCELERATION_CALIBRATION_ERROR"]:
         runner = MultiRunner([[var]])
         runner.run()
