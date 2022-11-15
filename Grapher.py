@@ -9,8 +9,10 @@ from metrics.Density import Density
 from metrics.orientations import OrientationMetric
 from metrics.PerceivedPosMetric import PerceivedPosMetric
 from metrics.speed import Speed
+from metrics.Helper_Functions import moving_average
+from metrics.trajectories import TrajectoryMetric
 #from metrics.trajectories import TrajectoryMetric
-
+import numpy as np
 from textwrap import wrap
 
 from matplotlib import pyplot as plt
@@ -143,6 +145,28 @@ class Grapher():
                     fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
                     plt.close(fig)
 
+    def generate_smooth_line_chart(self, data, metric_info, var):
+        var_name = " ".join([w.capitalize() for w in var.split("_")])
+        fig = plt.figure()
+        ax = fig.add_subplot()
+        labels = sorted(list(data.keys()), key=lambda x: float(x))
+        for k in labels:
+
+            #second parameter is the number adjacent values each data point is averaged with
+            k2 = moving_average(data[k], 3)
+
+            d = k2
+            ax.plot(d["Timestep"].to_numpy(), d.loc[:, d.columns != "Timestep"].to_numpy(), label=k)
+        ax.set_title("{} with varying {}".format(metric_info["desc"], var_name), wrap=True)
+        ax.set_xlabel("Timesteps (s)")
+        ax.set_ylabel("{} ({})".format(metric_info["axis_label"], metric_info["unit"]))
+        legend_title = "{} ({})".format(var_name, units_list[var])
+        legend_title = "\n".join(wrap(legend_title, 20))
+        l = ax.legend(title=legend_title, bbox_to_anchor=(1.04,1), loc="upper left")
+        plt.setp(l.get_title(), multialignment='center')
+        return fig
+
+
     def generate_line_chart(self, data, metric_info, var):
         var_name = " ".join([w.capitalize() for w in var.split("_")])
         fig = plt.figure()
@@ -158,6 +182,7 @@ class Grapher():
         legend_title = "\n".join(wrap(legend_title, 20))
         l = ax.legend(title=legend_title, bbox_to_anchor=(1.04,1), loc="upper left")
         plt.setp(l.get_title(), multialignment='center')
+        print("DONE")
         return fig
 
     def generate_bar_chart(self, data_list):
@@ -180,30 +205,30 @@ if __name__ == "__main__":
                         "axis_label": "Minimum Drone Separation",
                         "instance": Separation()
                         },
-                #    "sep_max": {
-                #         "desc": "Maximum separation between drones",
-                #         "unit": "m",
-                #         "axis_label": "Maximum Drone Separation",
-                #         "instance": Separation(reduction="max")
-                #         },
-                #    "sep_mean": {
-                #         "desc": "Mean separation between drones",
-                #         "unit": "m",
-                #         "axis_label": "Mean Drone Separation",
-                #         "instance": Separation(reduction="mean")
-                #         },
-                #    "col_num": {
-                #         "desc": "Total number of collisions",
-                #         "unit": "",
-                #         "axis_label": "Number of Collisions",
-                #         "instance": CollisionsNumber()
-                #         },
-                    # "density": {
-                    #     "desc": "Density of the swarm",
-                    #     "unit": "m$^2$",
-                    #     "axis_label": "Swarm Density",
-                    #     "instance": Density()
-                    #     },
+                    "sep_max": {
+                         "desc": "Maximum separation between drones",
+                         "unit": "m",
+                         "axis_label": "Maximum Drone Separation",
+                         "instance": Separation(reduction="max")
+                         },
+                    "sep_mean": {
+                         "desc": "Mean separation between drones",
+                         "unit": "m",
+                         "axis_label": "Mean Drone Separation",
+                         "instance": Separation(reduction="mean")
+                         },
+                    "col_num": {
+                         "desc": "Total number of collisions",
+                         "unit": "",
+                         "axis_label": "Number of Collisions",
+                         "instance": CollisionsNumber()
+                         },
+                     "density": {
+                         "desc": "Density of the swarm",
+                         "unit": "m$^2$",
+                         "axis_label": "Swarm Density",
+                         "instance": Density()
+                         },
                     "orient": {
                         "desc": "S.D of drone orientations",
                         "unit": "$^\circ$",
@@ -222,14 +247,14 @@ if __name__ == "__main__":
                         "axis_label": "Speed",
                         "instance": Speed()
                         },
-                    # "traj": {
-                    #     "desc": "Difference from optimal trajectory",
-                    #     "unit": "$^\circ$",
-                    #     "axis_label": "Angle From Optimal Trajectory",
-                    #     "instance": TrajectoryMetric()
-                    #     }
+                     "traj": {
+                         "desc": "Difference from optimal trajectory",
+                         "unit": "$^\circ$",
+                         "axis_label": "Angle From Optimal Trajectory",
+                         "instance": TrajectoryMetric()
+                         }
                    }
     
     #i will add that, bar charts, and moving average in next iteration
-    p = Path("out/FOLLOW_CIRCLE_ULTRA_CAL")
-    grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_line_chart)
+    p = Path("out/FIXED_HEADING_ULTRA_EXTENDED")
+    grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_smooth_line_chart)
