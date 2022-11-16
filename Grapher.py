@@ -142,6 +142,7 @@ class Grapher():
                 ind_var_output = self.get_single_var_data(metric, var, reduction=reduction)
                 if save_data:
                     folder = data_folder / var.name / metric_name    
+                    
                     for k, v in ind_var_output.items():
                         f = folder / k
                         f.mkdir(parents=True, exist_ok=True)
@@ -150,6 +151,8 @@ class Grapher():
                 if graph_func is not None:
                     fig = graph_func(ind_var_output, metric_info, var.name, **kwargs)
                     folder = fig_folder / var.name / metric_name
+                    if save_folder is not None:
+                        folder = folder / save_folder
                     folder.mkdir(parents=True, exist_ok=True)
                     fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
                     plt.close(fig)
@@ -228,12 +231,12 @@ if __name__ == "__main__":
                         "axis_label": "Average Distance From the Centre",
                         "instance": CentreDistMetric(),
                         },
-                    # "sep_min": {
-                    #     "desc": "Minimum separation between drones",
-                    #     "unit": "m",
-                    #     "axis_label": "Minimum Drone Separation",
-                    #     "instance": Separation()
-                    #     },
+                #     "sep_min": {
+                #         "desc": "Minimum separation between drones",
+                #         "unit": "m",
+                #         "axis_label": "Minimum Drone Separation",
+                #         "instance": Separation()
+                #         },
                 #    "sep_max": {
                 #         "desc": "Maximum separation between drones",
                 #         "unit": "m",
@@ -252,30 +255,30 @@ if __name__ == "__main__":
                 #         "axis_label": "Number of Collisions",
                 #         "instance": CollisionsNumber()
                 #         },
-                    # "density": {
-                    #     "desc": "Density of the swarm",
-                    #     "unit": "m$^2$",
-                    #     "axis_label": "Swarm Density",
-                    #     "instance": Density()
-                    #     },
-                    # "orient": {
-                    #     "desc": "S.D of drone orientations",
-                    #     "unit": "$^\circ$",
-                    #     "axis_label": "Drone Orientation S.D",
-                    #     "instance": OrientationMetric()
-                    #     },
-                    # "pos_err": {
-                    #     "desc": "Calculated position error",
-                    #     "unit": "m",
-                    #     "axis_label": "Calculated Position Error",
-                    #     "instance": PerceivedPosMetric()
-                    #     },
-                    # "speed": {
-                    #     "desc": "Speed of drones",
-                    #     "unit": "m/s",
-                    #     "axis_label": "Speed",
-                    #     "instance": Speed()
-                    #     },
+                #     "density": {
+                #         "desc": "Density of the swarm",
+                #         "unit": "m$^2$",
+                #         "axis_label": "Swarm Density",
+                #         "instance": Density()
+                #         },
+                #     "orient": {
+                #         "desc": "S.D of drone orientations",
+                #         "unit": "$^\circ$",
+                #         "axis_label": "Drone Orientation S.D",
+                #         "instance": OrientationMetric()
+                #         },
+                #     "pos_err": {
+                #         "desc": "Calculated position error",
+                #         "unit": "m",
+                #         "axis_label": "Calculated Position Error",
+                #         "instance": PerceivedPosMetric()
+                #         },
+                #     "speed": {
+                #         "desc": "Speed of drones",
+                #         "unit": "m/s",
+                #         "axis_label": "Speed",
+                #         "instance": Speed()
+                #         },
                     # "traj": {
                     #     "desc": "Difference from optimal trajectory",
                     #     "unit": "$^\circ$",
@@ -295,6 +298,6 @@ if __name__ == "__main__":
                              bar_reduction="last100")
 
     # Example of running a line graph on all of the data:
-    # grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_line_chart)
+    # grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_line_chart, save_folder="line")
 
 
