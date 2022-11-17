@@ -1,8 +1,8 @@
 import pandas as pd
 from pathlib import Path
-from BaseMetric import BaseMetric
-from orientations import OrientationMetric
-from Helper_Functions import HelperFunctions
+from .BaseMetric import BaseMetric
+from .orientations import OrientationMetric
+from .Helper_Functions import getOrientations
 from matplotlib import pyplot as plt
 import numpy as np
 
@@ -22,14 +22,14 @@ class TrajectoryMetric(BaseMetric):
         new_df.iloc[:,2].apply(lambda x: x*-1)
         new_df.drop(labels=['X Position', 'Y Position'], axis=1, inplace=True)
         print(new_df)
-        optimalBearings = HelperFunctions.getOrientations(df)
+        optimalBearings = getOrientations(df)
         
         return optimalBearings
 
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
         df = data[["Timestep", "X Velocity", "Y Velocity"]]
         
-        bearings = HelperFunctions.getOrientations(df)
+        bearings = getOrientations(df)
         optimal_df = data[["Timestep", "X Position", "Y Position"]]
 
         optimalBearings = self.optimaltrajectories(optimal_df)
