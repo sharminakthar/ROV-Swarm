@@ -47,6 +47,7 @@ def GetHeatmap(mission,para,run,bins,path):
     plt.tight_layout()
     plt.show()
 
+
 if __name__ == "__main__":
 
     bins = 200
