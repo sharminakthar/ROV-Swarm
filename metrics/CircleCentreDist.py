@@ -1,51 +1,37 @@
 from pathlib import Path
-from .BaseMetric import BaseMetric
+from BaseMetric import BaseMetric
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy.spatial import ConvexHull, convex_hull_plot_2d
+import math
 
-class Density(BaseMetric):
+class circlecentedist(BaseMetric):
 
     def __init__(self):
         super().__init__()
 
     def myfunction(self, data: pd.DataFrame) -> pd.DataFrame:
-        density = 0
-
-        x_p = data["X Position"]
-        y_p = data["Y Position"]
-
-        x_array = x_p.to_numpy()
-        y_array = y_p.to_numpy()
-
-        nw_array = np.zeros((data.shape[0],2))
-        nw_array[:,0] = x_array
-        nw_array[:,1] = y_array
-
-
-        hull = ConvexHull(nw_array)
-        density = ((hull.volume)/data.shape[0])
-
-        return(density)
+        x = data.shape[0]
+        data = data.sum(axis = 0)
+        data = data/x
+        distance = math.hypot(2500 - data["X Position"], 2500 - data["Y Position"])
+        return(distance)
 
     
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
         df = data[["Timestep","X Position", "Y Position" ]]
-        groups = df.groupby("Timestep")
-
         df= df.groupby('Timestep').apply(self.myfunction).reset_index()
-        df = df.rename(columns={0: "Density"})
-
+        df = df.rename(columns={0: "Distance"})
         return df
 
 if __name__ == "__main__":
-    metric = Density()
+    metric = circlecentedist()
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "../FOLLOW_CIRCLE_EXTENDED/FLOCK_SIZE"
+    path_name = "../out/FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA/FLOCK_SIZE"
     p = Path(path_name)
     data = metric.run_metric(p)
+    
     
     for k,d in data.items():
         plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=k)
@@ -53,4 +39,3 @@ if __name__ == "__main__":
     plt.show()
 
     print("done")
-
