@@ -4,13 +4,14 @@ from metrics.BaseMetric import BaseMetric
 from metrics.CentreDistMetric import CentreDistMetric
 from metrics.Separation import Separation
 
-from metrics.collisionsnumber import CollisionsNumber
-from metrics.Density import Density
-from metrics.orientations import OrientationMetric
-from metrics.PerceivedPosMetric import PerceivedPosMetric
-from metrics.speed import Speed
-from metrics.Helper_Functions import moving_average
-from metrics.trajectories import TrajectoryMetric
+# from metrics.collisionsnumber import CollisionsNumber
+# from metrics.Density import Density
+# from metrics.orientations import OrientationMetric
+# from metrics.PerceivedPosMetric import PerceivedPosMetric
+# from metrics.speed import Speed
+# #from metrics.Helper_Functions import moving_average
+# from metrics.trajectories import TrajectoryMetric
+from metrics.CircleCentreDist import circlecentedist
 #from metrics.trajectories import TrajectoryMetric
 import numpy as np
 from textwrap import wrap
@@ -193,68 +194,75 @@ class Grapher():
 if __name__ == "__main__":
     grapher = Grapher()
     metric_list = {
-                    "cdm": {
-                        "desc": "Distance between drones and centre of flock",
-                        "unit": "m",
-                        "axis_label": "Average Distance From the Centre",
-                        "instance": CentreDistMetric(),
-                        },
-                    "sep_min": {
-                        "desc": "Minimum separation between drones",
-                        "unit": "m",
-                        "axis_label": "Minimum Drone Separation",
-                        "instance": Separation()
-                        },
-                    "sep_max": {
-                         "desc": "Maximum separation between drones",
+                    # "cdm": {
+                    #     "desc": "Distance between drones and centre of flock",
+                    #     "unit": "m",
+                    #     "axis_label": "Average Distance From the Centre",
+                    #     "instance": CentreDistMetric(),
+                    #     },
+                    # "sep_min": {
+                    #     "desc": "Minimum separation between drones",
+                    #     "unit": "m",
+                    #     "axis_label": "Minimum Drone Separation",
+                    #     "instance": Separation()
+                    #     },
+                    # "sep_max": {
+                    #      "desc": "Maximum separation between drones",
+                    #      "unit": "m",
+                    #      "axis_label": "Maximum Drone Separation",
+                    #      "instance": Separation(reduction="max")
+                    #      },
+                    # "sep_mean": {
+                    #      "desc": "Mean separation between drones",
+                    #      "unit": "m",
+                    #      "axis_label": "Mean Drone Separation",
+                    #      "instance": Separation(reduction="mean")
+                    #      },
+                    # "col_num": {
+                    #      "desc": "Total number of collisions",
+                    #      "unit": "",
+                    #      "axis_label": "Number of Collisions",
+                    #      "instance": CollisionsNumber()
+                    #      },
+                    #  "density": {
+                    #      "desc": "Density of the swarm",
+                    #      "unit": "m$^2$",
+                    #      "axis_label": "Swarm Density",
+                    #      "instance": Density()
+                    #      },
+                    # "orient": {
+                    #     "desc": "S.D of drone orientations",
+                    #     "unit": "$^\circ$",
+                    #     "axis_label": "Drone Orientation S.D",
+                    #     "instance": OrientationMetric()
+                    #     },
+                    # "pos_err": {
+                    #     "desc": "Calculated position error",
+                    #     "unit": "m",
+                    #     "axis_label": "Calculated Position Error",
+                    #     "instance": PerceivedPosMetric()
+                    #     },
+                    # "speed": {
+                    #     "desc": "Speed of drones",
+                    #     "unit": "m/s",
+                    #     "axis_label": "Speed",
+                    #     "instance": Speed()
+                    #     },
+                    #  "traj": {
+                    #      "desc": "Difference from optimal trajectory",
+                    #      "unit": "$^\circ$",
+                    #      "axis_label": "Angle From Optimal Trajectory",
+                    #      "instance": TrajectoryMetric()
+                    #      },
+                    "ccd": {
+                         "desc": "Distance from centre of Circle",
                          "unit": "m",
-                         "axis_label": "Maximum Drone Separation",
-                         "instance": Separation(reduction="max")
-                         },
-                    "sep_mean": {
-                         "desc": "Mean separation between drones",
-                         "unit": "m",
-                         "axis_label": "Mean Drone Separation",
-                         "instance": Separation(reduction="mean")
-                         },
-                    "col_num": {
-                         "desc": "Total number of collisions",
-                         "unit": "",
-                         "axis_label": "Number of Collisions",
-                         "instance": CollisionsNumber()
-                         },
-                     "density": {
-                         "desc": "Density of the swarm",
-                         "unit": "m$^2$",
-                         "axis_label": "Swarm Density",
-                         "instance": Density()
-                         },
-                    "orient": {
-                        "desc": "S.D of drone orientations",
-                        "unit": "$^\circ$",
-                        "axis_label": "Drone Orientation S.D",
-                        "instance": OrientationMetric()
-                        },
-                    "pos_err": {
-                        "desc": "Calculated position error",
-                        "unit": "m",
-                        "axis_label": "Calculated Position Error",
-                        "instance": PerceivedPosMetric()
-                        },
-                    "speed": {
-                        "desc": "Speed of drones",
-                        "unit": "m/s",
-                        "axis_label": "Speed",
-                        "instance": Speed()
-                        },
-                     "traj": {
-                         "desc": "Difference from optimal trajectory",
-                         "unit": "$^\circ$",
-                         "axis_label": "Angle From Optimal Trajectory",
-                         "instance": TrajectoryMetric()
+                         "axis_label": "Distance from Centre",
+                         "instance": circlecentedist()
                          }
+
                    }
     
     #i will add that, bar charts, and moving average in next iteration
-    p = Path("out/FIXED_HEADING_ULTRA_EXTENDED")
-    grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_smooth_line_chart)
+    p = Path("out/FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA")
+    grapher.get_single_var_data(metric_list, p )

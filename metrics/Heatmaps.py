@@ -51,10 +51,11 @@ def GetHeatmap(mission,para,run,bins,path):
 if __name__ == "__main__":
 
     bins = 200
-    run = '3'
+    run = '2'
     mission = {
         '1' : 'FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA',
-        '2' : 'FIXED_HEADING'
+        '2' : 'FIXED_HEADING',
+        '3' : 'RACETRACK_EXTENDED'
     }
 
     parameters = {
@@ -73,7 +74,8 @@ if __name__ == "__main__":
         '13' : 'SPEED_ERROR',
         }
 
-    GetHeatmap(mission['1'],parameters['8'],run,bins,1)
+    GetHeatmap(mission['3'],parameters['2'],run,bins,0)
+
 
     print("done")
 
