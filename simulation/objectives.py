@@ -7,6 +7,7 @@ class DroneObjective(Enum):
     FOLLOW_CIRCLE = 3
     FIXED_HEADING = 4,
     TARGET_POINT = 5,
+    RACETRACK = 6,
 
 class MothershipObjective(Enum):
     NONE = 0
