@@ -14,7 +14,7 @@ from metrics.trajectories import TrajectoryMetric
 #from metrics.trajectories import TrajectoryMetric
 import numpy as np
 from textwrap import wrap
-
+import seaborn as sb
 from matplotlib import pyplot as plt
 
 units_list = {
@@ -187,6 +187,47 @@ class Grapher():
 
     def generate_bar_chart(self, data_list):
         pass
+
+
+
+    def generate_MultiVar_heatmap(dataArray, xlabels, ylabels, var1, var2, metric_info):
+        var1_name = " ".join([w.capitalize() for w in var1.split("_")])
+        var2_name = " ".join([w.capitalize() for w in var2.split("_")])
+
+        
+        mvData = pd.DataFrame(dataArray, columns=xlabels, index=ylabels).pivot(("{} ({})".format(var1_name, units_list[var1])), ("{} ({})".format(var2_name, units_list[var2])), "{} ({})".format(metric_info["axis_label"], metric_info["unit"]))
+
+        minValue = mvData.min().min()
+        maxValue = mvData.max().max()
+        
+        return sb.heatmap(mvData vmin = minValue, vmax = maxValue, annot=True)
+
+    def generate_3DBarChart(dataArray, xlabels, ylabels, var1, var2, metric_info):
+        var1_name = " ".join([w.capitalize() for w in var1.split("_")])
+        var2_name = " ".join([w.capitalize() for w in var2.split("_")])
+
+
+        fig = plt.figure(figsize=(8, 3))
+        ax1 = fig.add_subplot(121, projection='3d')
+
+        _x = xlabels
+        _y = ylabels
+        _xx, _yy = np.meshgrid(_x, _y)
+        x, y = _xx.ravel(), _yy.ravel()
+
+        top = dataArray
+        bottom = np.zeros_like(top)
+        width = depth = 1
+
+        ax1.bar3d(x, y, bottom, width, depth, top, shade=True)
+        ax1.set_title("{} with varying {}".format(metric_info["desc"], var_name), wrap=True)
+        ax1.set_xlabel("{} ({})".format(var1_name, units_list[var1]))
+        ax1.set_ylabel("{} ({})".format(var2_name, units_list[var2]))
+        ax1.set_zlabel("{} ({})".format(metric_info["axis_label"], metric_info["unit"]))
+
+        plt.show()
+
+        return fig
 
 
 
