@@ -201,6 +201,23 @@ class Grapher():
         ax.set_ylabel("{} ({})".format(metric_info["axis_label"], metric_info["unit"]))
 
         return fig
+    
+    def read_multi_data(self, p: Path, metric_name="cdm"):
+        names = p.name.split("-")[1:]
+        data_path = p / "Metric_data"
+        axis1 = [n.name for n in data_path.iterdir()]
+        axis1_index = {n:i for i,n in enumerate(axis1)}
+        axis2 = [n.name for n in next(next(data_path.iterdir()).iterdir()).iterdir()]
+        axis2_index = {n:i for i,n in enumerate(axis2)}
+        
+        data_arr = np.zeros((len(axis1), len(axis2)))
+        for packet_loss in data_path.iterdir():
+            for metric in packet_loss.iterdir():
+                if metric.name == metric_name:
+                    for bandwidth in metric.iterdir():
+                        data = pd.read_csv(bandwidth / "metric_data.csv")
+                        data_arr[axis1_index[packet_loss.name], axis2_index[bandwidth.name]] = data.iloc[:,1].mean()
+        return axis1, axis2, data_arr
 
 def determine_bar_reduction(bar_reduction):
     func_dict = {
@@ -231,54 +248,54 @@ if __name__ == "__main__":
                         "axis_label": "Average Distance From the Centre",
                         "instance": CentreDistMetric(),
                         },
-                #     "sep_min": {
-                #         "desc": "Minimum separation between drones",
-                #         "unit": "m",
-                #         "axis_label": "Minimum Drone Separation",
-                #         "instance": Separation()
-                #         },
-                #    "sep_max": {
-                #         "desc": "Maximum separation between drones",
-                #         "unit": "m",
-                #         "axis_label": "Maximum Drone Separation",
-                #         "instance": Separation(reduction="max")
-                #         },
-                #    "sep_mean": {
-                #         "desc": "Mean separation between drones",
-                #         "unit": "m",
-                #         "axis_label": "Mean Drone Separation",
-                #         "instance": Separation(reduction="mean")
-                #         },
-                #    "col_num": {
-                #         "desc": "Total number of collisions",
-                #         "unit": "",
-                #         "axis_label": "Number of Collisions",
-                #         "instance": CollisionsNumber()
-                #         },
+                    "sep_min": {
+                        "desc": "Minimum separation between drones",
+                        "unit": "m",
+                        "axis_label": "Minimum Drone Separation",
+                        "instance": Separation()
+                        },
+                   "sep_max": {
+                        "desc": "Maximum separation between drones",
+                        "unit": "m",
+                        "axis_label": "Maximum Drone Separation",
+                        "instance": Separation(reduction="max")
+                        },
+                   "sep_mean": {
+                        "desc": "Mean separation between drones",
+                        "unit": "m",
+                        "axis_label": "Mean Drone Separation",
+                        "instance": Separation(reduction="mean")
+                        },
+                   "col_num": {
+                        "desc": "Total number of collisions",
+                        "unit": "",
+                        "axis_label": "Number of Collisions",
+                        "instance": CollisionsNumber()
+                        },
                 #     "density": {
                 #         "desc": "Density of the swarm",
                 #         "unit": "m$^2$",
                 #         "axis_label": "Swarm Density",
                 #         "instance": Density()
                 #         },
-                #     "orient": {
-                #         "desc": "S.D of drone orientations",
-                #         "unit": "$^\circ$",
-                #         "axis_label": "Drone Orientation S.D",
-                #         "instance": OrientationMetric()
-                #         },
-                #     "pos_err": {
-                #         "desc": "Calculated position error",
-                #         "unit": "m",
-                #         "axis_label": "Calculated Position Error",
-                #         "instance": PerceivedPosMetric()
-                #         },
-                #     "speed": {
-                #         "desc": "Speed of drones",
-                #         "unit": "m/s",
-                #         "axis_label": "Speed",
-                #         "instance": Speed()
-                #         },
+                    "orient": {
+                        "desc": "S.D of drone orientations",
+                        "unit": "$^\circ$",
+                        "axis_label": "Drone Orientation S.D",
+                        "instance": OrientationMetric()
+                        },
+                    "pos_err": {
+                        "desc": "Calculated position error",
+                        "unit": "m",
+                        "axis_label": "Calculated Position Error",
+                        "instance": PerceivedPosMetric()
+                        },
+                    "speed": {
+                        "desc": "Speed of drones",
+                        "unit": "m/s",
+                        "axis_label": "Speed",
+                        "instance": Speed()
+                        },
                     # "traj": {
                     #     "desc": "Difference from optimal trajectory",
                     #     "unit": "$^\circ$",
@@ -289,15 +306,20 @@ if __name__ == "__main__":
 
     print("start")
     # Path to the data that is being graphed
-    p = Path("out/FOLLOW_CIRCLE_ULTRA_EXTENDED")
+    p = Path("out/FOLLOW_CIRCLE_MULTI/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5")
     # Will write all metric data and make graphs automatically
     # Graph_func should have the same parameters as the defined ones, and as many keyword arguments
     # (e.g. "bar_reduction") as needed
     # Example for making a bar chart with the mean of the last 100 values in the run:
-    grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_bar_chart, specific_param=["BANDWIDTH"],
-                             bar_reduction="last100")
+    # grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_bar_chart, specific_param=["BANDWIDTH"],
+    #                          bar_reduction="last100")
 
     # Example of running a line graph on all of the data:
     # grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_line_chart, save_folder="line")
+    # grapher.get_all_var_data(metric_list, p)
+    axis1, axis2, arr = grapher.read_multi_data(Path("out/FOLLOW_CIRCLE_MULTI/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5"))
+    print(axis1)
+    print(axis2)
+    print(arr)
 
 
