@@ -11,7 +11,7 @@ from metrics.orientations import OrientationMetric
 from metrics.PerceivedPosMetric import PerceivedPosMetric
 from metrics.speed import Speed
 #from metrics.trajectories import TrajectoryMetric
-
+import seaborn as sb
 from textwrap import wrap
 
 from matplotlib import pyplot as plt
@@ -64,6 +64,39 @@ class Grapher():
         return pd.DataFrame(results)
 
     def get_single_var_data(self, metric: BaseMetric, directory: Path, reduction="mean") -> dict[str, pd.DataFrame]:
+        """
+        Takes in a list of metrics and a directory of a single variable and produces the metric data 
+        of the simulations in that directory. There will be the data for a single graph for each metric.
+
+        Parameters
+            metric_list: BaseMetric
+                The metric to be run on the data.
+            directory: Path
+                The directory of the data being read.
+            reduction: str
+                The method used to reduce the data of the runs into one list of values. Should either be "mean"
+                or "runN" where N is the number of the run to extract.
+            
+        Returns
+            A dictionary linking each variable value to the values of the metric at each timestep.
+        """
+        ind_var_output = {}
+        for ind_var in directory.iterdir():
+            df = self.get_single_val_data(metric, ind_var)
+            result = None
+            if reduction == "mean":
+                result = pd.concat([df["Timestep"], df.loc[:, df.columns != "Timestep"].mean(axis=1)], axis=1)
+            elif reduction.startswith("run"):
+                result = pd.concat([df["Timestep"], df[reduction[3:]]], axis=1)
+            elif reduction == "none":
+                result = df
+            else:
+                raise KeyError("Expected one of 'mean' or 'runN' for the data reduction")
+            ind_var_output[ind_var.name] = result
+        
+        return ind_var_output
+
+    def get_multi_var_data(self, metric1: BaseMetric, metric2: BaseMetric, directory: Path, reduction="mean") -> dict[str, pd.DataFrame]:
         """
         Takes in a list of metrics and a directory of a single variable and produces the metric data 
         of the simulations in that directory. There will be the data for a single graph for each metric.
@@ -179,6 +212,8 @@ class Grapher():
 
         return fig
 
+    
+
     def generate_bar_chart(self, data, metric_info, var, bar_reduction="mean"):
         """
         bar_reduction is one of "mean", "sum", "last", "lastN"
@@ -207,6 +242,16 @@ class Grapher():
         data_path = p / "Metric_data"
         axis1 = [n.name for n in data_path.iterdir()]
         axis1_index = {n:i for i,n in enumerate(axis1)}
+        print(p)
+        names = p.name.split("-")[1:]
+        print(names)
+        print(p.name.split("-"))
+        data_path = p / "Metric_data"
+        print(data_path)
+        axis1 = [n.name for n in data_path.iterdir()]
+        print(axis1)
+        axis1_index = {n:i for i,n in enumerate(axis1)}
+        print(axis1_index)
         axis2 = [n.name for n in next(next(data_path.iterdir()).iterdir()).iterdir()]
         axis2_index = {n:i for i,n in enumerate(axis2)}
         
@@ -238,6 +283,69 @@ def determine_bar_reduction(bar_reduction):
         raise Exception("reduction must be one of 'mean', 'sum', 'last', or 'lastN'")
     
     return func
+
+def generate_MultiVar_heatmap( dataArray, xlabels, ylabels):
+        #var1_name = " ".join([w.capitalize() for w in var1.split("_")])
+        #var2_name = " ".join([w.capitalize() for w in var2.split("_")])
+
+        
+        #mvData = pd.DataFrame(dataArray, columns=xlabels, index=ylabels).pivot(("{} ({})".format(var1_name, units_list[var1])), ("{} ({})".format(var2_name, units_list[var2])), "{} ({})".format(metric_info["axis_label"], metric_info["unit"]))
+        mvData = pd.DataFrame(dataArray, columns=xlabels, index=ylabels)
+
+        minValue = mvData.min().min()
+        maxValue = mvData.max().max()
+        sb.heatmap(mvData, vmin = minValue, vmax = maxValue, annot=True)
+        plt.show()
+        return sb.heatmap(mvData, vmin = minValue, vmax = maxValue, annot=True)
+
+def generate_3DBarChart( dataArray, xlabels, ylabels):
+        #var1_name = " ".join([w.capitalize() for w in var1.split("_")])
+        #var2_name = " ".join([w.capitalize() for w in var2.split("_")])
+
+
+        fig = plt.figure(figsize=(8, 3))
+        ax1 = fig.add_subplot(121, projection='3d')
+
+      
+
+
+
+        _x = xlabels
+        _y = ylabels
+        _xx, _yy = np.meshgrid(_x, _y)
+        x, y = _xx.ravel(), _yy.ravel()
+
+
+
+        
+        top = dataArray.ravel()
+
+        bottom = np.zeros_like(top)
+        
+        width = xlabels[len(xlabels)-1]/len(xlabels)
+        
+        depth = ylabels[len(ylabels)-1]/len(ylabels)
+
+
+        print(type(x))
+        print(type(y))
+        print(type(bottom))
+        print(type(width))
+        print(type(depth))
+        print(type(top))
+
+
+        ax1.bar3d(x, y, bottom, width, depth, top, shade=True)
+        #ax1.set_title("{} with varying {}".format(metric_info["desc"], var_name), wrap=True)
+        #ax1.set_xlabel("{} ({})".format(var1_name, units_list[var1]))
+        #ax1.set_ylabel("{} ({})".format(var2_name, units_list[var2]))
+        #ax1.set_zlabel("{} ({})".format(metric_info["axis_label"], metric_info["unit"]))
+
+        plt.show()
+
+        return fig
+
+
 
 if __name__ == "__main__":
     grapher = Grapher()
@@ -272,12 +380,12 @@ if __name__ == "__main__":
                         "axis_label": "Number of Collisions",
                         "instance": CollisionsNumber()
                         },
-                #     "density": {
-                #         "desc": "Density of the swarm",
-                #         "unit": "m$^2$",
-                #         "axis_label": "Swarm Density",
-                #         "instance": Density()
-                #         },
+                     "density": {
+                         "desc": "Density of the swarm",
+                         "unit": "m$^2$",
+                         "axis_label": "Swarm Density",
+                         "instance": Density()
+                         },
                     "orient": {
                         "desc": "S.D of drone orientations",
                         "unit": "$^\circ$",
@@ -307,6 +415,7 @@ if __name__ == "__main__":
     print("start")
     # Path to the data that is being graphed
     p = Path("out/FOLLOW_CIRCLE_MULTI/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5")
+    p = Path("out/FIXED_RACETRACK_MULTIVAR/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5")
     # Will write all metric data and make graphs automatically
     # Graph_func should have the same parameters as the defined ones, and as many keyword arguments
     # (e.g. "bar_reduction") as needed
@@ -321,5 +430,23 @@ if __name__ == "__main__":
     print(axis1)
     print(axis2)
     print(arr)
+    #grapher.get_all_var_data(metric_list, p)
+
+
+    axis1, axis2, arr = grapher.read_multi_data(Path("out/FIXED_RACETRACK_MULTIVAR/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5"))
+    print(axis1)
+    print(axis2)
+    print(arr)
+    #metric_name, metric_info = metric_list
+    #for metric_name, metric_info in metric_list.items():
+     #       metric = metric_info["instance"]
+      #      name = "{} - {}".format(var.name, metric_name)
+       #     print(name)
+
+    
+    generate_3DBarChart(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
+    generate_MultiVar_heatmap(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
+
+    
 
 
