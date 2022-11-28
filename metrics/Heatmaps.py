@@ -1,6 +1,7 @@
 from pathlib import Path
 from BaseMetric import BaseMetric
 import numpy as np
+from numpy import sin, cos, pi, linspace
 from matplotlib import pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.ticker import FixedLocator, FixedFormatter
@@ -40,8 +41,33 @@ def GetHeatmap(mission,para,run,bins,path):
             axes[i][j].imshow(heatmap0.T, cmap = 'turbo', extent=extent0, origin='lower')
             axes[i][j].set_title(filenames[(i*3)+j],fontdict={'fontsize': 12})
             axes[i][j].xaxis.set_major_locator(FixedLocator([round(item, -2) for item in x_points]))
-            if path:
+
+            if path and mission == 'FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA':
                 axes[i][j].add_patch(Circle((2500,2500),1000, fill = False, color = '#39FF14'))
+            elif path and mission == 'RACETRACK_EXTENDED':
+                r = 1000
+                lw = 1
+
+                arc_angles = linspace(pi/2, 2*pi*(3/4), 30)
+                arc_xs = r * cos(arc_angles) + 1500
+                arc_ys = r * sin(arc_angles) + 2500
+
+                arc_angles2 = linspace(-1*pi*(1/2),pi/2, 30)
+                arc_xs2 = r * cos(arc_angles2) + 3500
+                arc_ys2 = r * sin(arc_angles2) + 2500
+
+                p1 = [1500,1500]
+                p2 = [3500,1500]
+                x, y = [p1[0], p2[0]], [p1[1], p2[1]]
+
+                p3 = [1500,3500]
+                p4 = [3500,3500]
+                x2, y2 = [p3[0], p4[0]], [p3[1], p4[1]]
+
+                axes[i][j].plot(arc_xs, arc_ys, color = 'green', lw = lw)
+                axes[i][j].plot(arc_xs2, arc_ys2, color = 'green', lw = lw)
+                axes[i][j].plot( x , y , lw=lw , color = 'green')
+                axes[i][j].plot( x2 , y2 , lw=lw ,color = 'green' )
 
     fig.suptitle(str.title(para.replace("_", " " )), fontsize=16)
     plt.tight_layout()
@@ -74,7 +100,7 @@ if __name__ == "__main__":
         '13' : 'SPEED_ERROR',
         }
 
-    GetHeatmap(mission['3'],parameters['2'],run,bins,0)
+    GetHeatmap(mission['3'],parameters['6'],run,bins,1)
 
 
     print("done")
