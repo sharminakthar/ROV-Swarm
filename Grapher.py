@@ -401,7 +401,6 @@ if __name__ == "__main__":
     # grapher.get_all_var_data(metric_list, p)
 
     grapher.get_all_var_data(metric_list, p, save_folder="3DBar")
-    p = Path("out/FIXED_RACETRACK_MULTIVAR_STEADY/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5/Graphs/")
 
 
     #axis1, axis2, arr = grapher.read_multi_data(Path("out/FIXED_RACETRACK_MULTIVAR/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5"), "cdm")
