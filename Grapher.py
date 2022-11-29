@@ -13,6 +13,7 @@ from metrics.speed import Speed
 #from metrics.trajectories import TrajectoryMetric
 import seaborn as sb
 from textwrap import wrap
+from matplotlib import cm
 
 from matplotlib import pyplot as plt
 
@@ -159,31 +160,7 @@ class Grapher():
                     plt.close(fig)
 
 
-    def multivar_grapher(self, metric_list: dict, directory: Path, reduction: str="mean", graph_func1=None, graph_func2=None):
-        fig_folder = directory / "Graphs"
-        if graph_func1:
-            fig_folder.mkdir(parents=True, exist_ok=True)
-        
     
-        for metric_name, metric_info in metric_list.items():
-                metric = metric_info["instance"]
-                print("metric name: ",metric_name)
-                axis1, axis2, arr = self.read_multi_data(p, metric_name)
-            if graph_func1 is not None: 
-                    fig = graph_func1(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
-                    folder = fig_folder / metric_name
-                    folder.mkdir(parents=True, exist_ok=True)
-                    fig.savefig(folder / (metric_name + "_BAR" +  ".png"), bbox_inches="tight")
-                    plt.close(fig)
-            if graph_func2 is not None:
-                    fig = graph_func2(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
-                    folder = fig_folder / metric_name 
-                    folder.mkdir(parents=True, exist_ok=True)
-                    fig.savefig(folder / (metric_name + "_MAP" +  ".png"), bbox_inches="tight")
-                    plt.close(fig)
-
-
-
     def generate_line_chart(self, data, metric_info, var):
         var_name = " ".join([w.capitalize() for w in var.split("_")])
 
@@ -231,21 +208,12 @@ class Grapher():
 
         return fig
     
-    def read_multi_data(self, p: Path, metric_name):
+def read_multi_data( p: Path, metric_name="cdm", reduction="mean"):
+        reduction = determine_bar_reduction(reduction)
         names = p.name.split("-")[1:]
         data_path = p / "Metric_data"
         axis1 = [n.name for n in data_path.iterdir()]
         axis1_index = {n:i for i,n in enumerate(axis1)}
-        print(p)
-        names = p.name.split("-")[1:]
-        print(names)
-        print(p.name.split("-"))
-        data_path = p / "Metric_data"
-        print(data_path)
-        axis1 = [n.name for n in data_path.iterdir()]
-        print(axis1)
-        axis1_index = {n:i for i,n in enumerate(axis1)}
-        print(axis1_index)
         axis2 = [n.name for n in next(next(data_path.iterdir()).iterdir()).iterdir()]
         axis2_index = {n:i for i,n in enumerate(axis2)}
         
@@ -255,8 +223,45 @@ class Grapher():
                 if metric.name == metric_name:
                     for bandwidth in metric.iterdir():
                         data = pd.read_csv(bandwidth / "metric_data.csv")
-                        data_arr[axis1_index[packet_loss.name], axis2_index[bandwidth.name]] = data.iloc[:,1].mean()
-        return axis1, axis2, data_arr
+                        data_arr[axis1_index[packet_loss.name], axis2_index[bandwidth.name]] = reduction(data.iloc[:,1].to_numpy())
+        return axis1, axis2, data_arr  
+
+
+def multivar_grapher( metric_list: dict, directory: Path, reduction: str="mean", graph_func1=None, graph_func2=None, graph_func3 = None):
+        fig_folder = directory / "Graphs"  
+        if graph_func1:
+            fig_folder.mkdir(parents=True, exist_ok=True)
+        
+    
+        for metric_name, metric_info in metric_list.items():
+                metric = metric_info["instance"]
+                print("metric name: ",metric_name)
+                if metric_name =="col_num":
+                    print("sum")
+                    axis1, axis2, arr = read_multi_data(p, metric_name, reduction="sum")
+                else:
+                    axis1, axis2, arr = read_multi_data(p, metric_name)
+                
+                if graph_func1 is not None: 
+                    fig = graph_func1(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
+                    folder = fig_folder / metric_name
+                    folder.mkdir(parents=True, exist_ok=True)
+                    fig.savefig(folder / (metric_name + "_BAR" +  ".png"), bbox_inches="tight")
+                    plt.close(fig)
+                if graph_func2 is not None:
+                    fig = graph_func2(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
+                    folder = fig_folder / metric_name 
+                    folder.mkdir(parents=True, exist_ok=True)
+                    fig.savefig(folder / (metric_name + "_MAP" +  ".png"), bbox_inches="tight")
+                    plt.close(fig)
+                if graph_func3 is not None: 
+                    fig = graph_func3(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
+                    folder = fig_folder / metric_name
+                    folder.mkdir(parents=True, exist_ok=True)
+                    fig.savefig(folder / (metric_name + "_Surface" +  ".png"), bbox_inches="tight")
+                    plt.close(fig)
+
+
 
 def determine_bar_reduction(bar_reduction):
     func_dict = {
@@ -283,22 +288,24 @@ def generate_MultiVar_heatmap( dataArray, xlabels, ylabels):
         #var2_name = " ".join([w.capitalize() for w in var2.split("_")])
         
         #mvData = pd.DataFrame(dataArray, columns=xlabels, index=ylabels).pivot(("{} ({})".format(var1_name, units_list[var1])), ("{} ({})".format(var2_name, units_list[var2])), "{} ({})".format(metric_info["axis_label"], metric_info["unit"]))
-        mvData = pd.DataFrame(dataArray, columns=xlabels, index=ylabels)
-
+        mvData = pd.DataFrame(dataArray, columns=ylabels, index=xlabels)
+        xlabels = np.round_(xlabels, decimals = 2)
+        ylabels = np.round_(ylabels, decimals = 2)
         minValue = mvData.min().min()
         maxValue = mvData.max().max()
         fig = sb.heatmap(mvData, vmin = minValue, vmax = maxValue).get_figure()
         #plt.show()
         return fig
 
-def generate_3DBarChart( dataArray, xlabels, ylabels):
+def generate_3DBarChart( dataArray, ylabels, xlabels):
         #var1_name = " ".join([w.capitalize() for w in var1.split("_")])
         #var2_name = " ".join([w.capitalize() for w in var2.split("_")])
 
 
         fig = plt.figure(figsize=(8, 3))
         ax1 = fig.add_subplot(121, projection='3d')
-
+        print(xlabels)
+        print(ylabels)
         _x = xlabels
         _y = ylabels
         _xx, _yy = np.meshgrid(_x, _y)
@@ -318,6 +325,26 @@ def generate_3DBarChart( dataArray, xlabels, ylabels):
 
         return fig
 
+
+def generate_3D_Contour_Plot(dataArray, ylabels, xlabels):
+    _x = xlabels
+    _y = ylabels
+    x, y = np.meshgrid(_x, _y)
+       
+    top = dataArray
+    
+    
+    fig = plt.figure()
+    ax = plt.axes(projection = "3d")
+ 
+    #ax.plot_surface(x, y, top, cmap = cm.coolwarm, lw=0.5, rstride=1, cstride=1)
+    #ax.contour3D(x, y, top, cmap="binary")
+
+    ax.plot_surface(x, y, top, cmap="autumn_r", lw=0.5, rstride=1, cstride=1, alpha=0.5)
+    ax.contour(x, y, top, 10, lw=3, cmap="autumn_r", linestyles="solid", offset=-1)
+    ax.contour(x, y,top, 10, lw=3, colors="k", linestyles="solid")
+    #ax.contour3D(X, Y, Z, cmap="binary")
+    return fig
 
 
 if __name__ == "__main__":
@@ -387,8 +414,8 @@ if __name__ == "__main__":
 
     print("start")
     # Path to the data that is being graphed
+    #p = Path("out/FOLLOW_CIRCLE_MULTI/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5")
     p = Path("out/FIXED_RACETRACK_MULTIVAR_STEADY/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5")
-    #p = Path("out/FIXED_RACETRACK_MULTIVAR/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5")
     # Will write all metric data and make graphs automatically
     # Graph_func should have the same parameters as the defined ones, and as many keyword arguments
     # (e.g. "bar_reduction") as needed
@@ -400,7 +427,7 @@ if __name__ == "__main__":
     # grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_line_chart, save_folder="line")
     # grapher.get_all_var_data(metric_list, p)
 
-    grapher.get_all_var_data(metric_list, p, save_folder="3DBar")
+    #grapher.get_all_var_data(metric_list, p, save_folder="Multivar")
 
 
     #axis1, axis2, arr = grapher.read_multi_data(Path("out/FIXED_RACETRACK_MULTIVAR/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5"), "cdm")
@@ -415,12 +442,12 @@ if __name__ == "__main__":
 
     for metric_name, metric_info in metric_list.items():
         #axis1, axis2, arr = grapher.read_multi_data(p, metric_name)
-        grapher.multivar_grapher(metric_list, p, graph_func1 = generate_3DBarChart, graph_func2 = generate_MultiVar_heatmap)
+        multivar_grapher(metric_list, p, graph_func1 = generate_3DBarChart, graph_func2 = generate_MultiVar_heatmap, graph_func3 = generate_3D_Contour_Plot)
         
         
         #fig = generate_3DBarChart(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
         
-    generate_MultiVar_heatmap(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
+    #generate_MultiVar_heatmap(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
 
     
 
