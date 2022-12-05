@@ -10,11 +10,18 @@ from metrics.Density import Density
 from metrics.orientations import OrientationMetric
 from metrics.PerceivedPosMetric import PerceivedPosMetric
 from metrics.speed import Speed
+<<<<<<< HEAD
 from metrics.trajectories import TrajectoryMetric
 #from metrics.trajectories import TrajectoryMetric
 import seaborn as sb
 from scipy.stats import spearmanr
 
+=======
+from metrics.Helper_Functions import moving_average
+from metrics.trajectories import TrajectoryMetric
+#from metrics.trajectories import TrajectoryMetric
+import numpy as np
+>>>>>>> racetrack
 from textwrap import wrap
 from matplotlib import cm
 
@@ -162,8 +169,33 @@ class Grapher():
                     fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
                     plt.close(fig)
 
+<<<<<<< HEAD
 
     
+=======
+    def generate_smooth_line_chart(self, data, metric_info, var):
+        var_name = " ".join([w.capitalize() for w in var.split("_")])
+        fig = plt.figure()
+        ax = fig.add_subplot()
+        labels = sorted(list(data.keys()), key=lambda x: float(x))
+        for k in labels:
+
+            #second parameter is the number adjacent values each data point is averaged with
+            k2 = moving_average(data[k], 3)
+
+            d = k2
+            ax.plot(d["Timestep"].to_numpy(), d.loc[:, d.columns != "Timestep"].to_numpy(), label=k)
+        ax.set_title("{} with varying {}".format(metric_info["desc"], var_name), wrap=True)
+        ax.set_xlabel("Timesteps (s)")
+        ax.set_ylabel("{} ({})".format(metric_info["axis_label"], metric_info["unit"]))
+        legend_title = "{} ({})".format(var_name, units_list[var])
+        legend_title = "\n".join(wrap(legend_title, 20))
+        l = ax.legend(title=legend_title, bbox_to_anchor=(1.04,1), loc="upper left")
+        plt.setp(l.get_title(), multialignment='center')
+        return fig
+
+
+>>>>>>> racetrack
     def generate_line_chart(self, data, metric_info, var):
         var_name = " ".join([w.capitalize() for w in var.split("_")])
 
@@ -183,7 +215,11 @@ class Grapher():
         legend_title = "\n".join(wrap(legend_title, 20))
         l = ax.legend(title=legend_title, bbox_to_anchor=(1.04,1), loc="upper left")
         plt.setp(l.get_title(), multialignment='center')
+<<<<<<< HEAD
 
+=======
+        print("DONE")
+>>>>>>> racetrack
         return fig
 
     
@@ -422,6 +458,7 @@ if __name__ == "__main__":
                         "axis_label": "Minimum Drone Separation",
                         "instance": Separation()
                         },
+<<<<<<< HEAD
                    "sep_max": {
                         "desc": "Maximum separation between drones",
                         "unit": "m",
@@ -440,6 +477,26 @@ if __name__ == "__main__":
                         "axis_label": "Number of Collisions",
                         "instance": CollisionsNumber()
                         },
+=======
+                    "sep_max": {
+                         "desc": "Maximum separation between drones",
+                         "unit": "m",
+                         "axis_label": "Maximum Drone Separation",
+                         "instance": Separation(reduction="max")
+                         },
+                    "sep_mean": {
+                         "desc": "Mean separation between drones",
+                         "unit": "m",
+                         "axis_label": "Mean Drone Separation",
+                         "instance": Separation(reduction="mean")
+                         },
+                    "col_num": {
+                         "desc": "Total number of collisions",
+                         "unit": "",
+                         "axis_label": "Number of Collisions",
+                         "instance": CollisionsNumber()
+                         },
+>>>>>>> racetrack
                      "density": {
                          "desc": "Density of the swarm",
                          "unit": "m$^2$",
@@ -510,5 +567,11 @@ if __name__ == "__main__":
     #generate_MultiVar_heatmap(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
 
     
+<<<<<<< HEAD
 
 
+=======
+    #i will add that, bar charts, and moving average in next iteration
+    p = Path("out/FIXED_HEADING_ULTRA_EXTENDED")
+    grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_smooth_line_chart)
+>>>>>>> racetrack

@@ -18,7 +18,6 @@ class DroneController:
             [settings.get(Setting.TARGET_X), settings.get(Setting.TARGET_Y)]).reshape(2, 1)
         self.target_radius = settings.get(Setting.TARGET_RADIUS)
         self.target_heading = settings.get(Setting.TARGET_HEADING)
-
         # attribute keeping track of how communication cycles a drone has not received a message from another drone
         self.lost_counter = 0
 
@@ -67,7 +66,9 @@ class DroneController:
         elif self.objective == DroneObjective.TARGET_POINT:
             force += self.get_move_to_point_vector(
                 self.target_pos, self._weight_objective).reshape((2, 1))
-
+        elif self.objective == DroneObjective.RACETRACK:
+            force += self.get_racetrack_vector(
+                self._weight_objective, np.array([[2500],[2500]]), self.target_radius, 2000, use_flock_center=True).reshape((2, 1))
         return normalize(force.reshape((2, 1)))
 
     def calculate_nearest_neighbour(self):
@@ -146,11 +147,73 @@ class DroneController:
         if(use_flock_center):
             pos = self.get_flock_center()
 
+        #vector between position and centre
         center_vec = normalize(pos - center.reshape(2, 1))
+
+        #rotate target_vector by 0.1
         target_vec = rotate(center_vec, forecast_radians)
+
+        #target position = centre + rotated vector multiplied by radius of circle
         target_pos = center.reshape(2, 1) + target_vec.reshape(2, 1) * radius
 
         return self.get_move_to_point_vector(target_pos, strength)
+
+    
+    def getSection(self, pos, r, l, center):
+        if pos < (float(center[0][0])-l/2):
+            return 1
+        elif pos > (float(center[0][0]) + l/2):
+            return 3
+        else:
+            return 2
+
+    def get_racetrack_vector(self, strength, center, r, l, use_flock_center=False, forecast_radians=0.1):
+
+        pos = self.approximate_position#
+        if(use_flock_center):
+            pos = self.get_flock_center()
+
+ 
+        section = self.getSection(float(pos[0][0]),r, l, center)
+        newCenter = center
+        if section == 1:
+            newCenter[0][0] -= l/2
+        elif section == 3:
+            newCenter[0][0] += l/2
+        else:
+            newCenter = center
+
+   
+        center_vec = normalize(pos - newCenter.reshape(2, 1))
+
+        n = rotate(center_vec, forecast_radians)
+        m = float(n[1] / n[0])
+   
+        if section == 1:
+            x = 1000/((m**2 + 1)**0.5)
+            x = -np.abs(x)
+            y = m*x
+        elif section == 2:
+            if float(pos[1][0] - newCenter[1][0]) > 0:
+                y = 1000
+                x = y/m
+            else:
+                y = -1000
+                x = y/m            
+        else: 
+            x = 1000/((m**2 + 1)**0.5)
+            x = np.abs(x)
+            y = m*x
+
+  
+        x += float(newCenter[0][0])
+        y += float(newCenter[1][0])
+
+        return self.get_move_to_point_vector([[x], [y]], strength)
+            
+
+
+
 
     def get_direction_vector(self, heading, strength):
         return strength * bearing_to_vector(heading)

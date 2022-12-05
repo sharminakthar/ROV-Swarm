@@ -12,9 +12,20 @@ class MultiRunner():
     def __init__(self, variable_groups, steps=10000, samples=5):
         # Stores the range of values to be used when testing
         self.variables = {
-            "FLOCK_SIZE": [5],
-            "BANDWIDTH": [ i*0.3 for i in range(13)],
-            "PACKET_LOSS": [10*i for i in range(10)],
+            "FLOCK_SIZE": [3 + i for i in range(7)],
+            "BANDWIDTH": [round((i*3)/10,2) for i in range(10)],
+            "PACKET_LOSS": [10 * i for i in range(10)],
+            "SPEED_ERROR": [round(5 * i,2) for i in range(10)],
+            "HEADING_ERROR": [round(5 * i,2) for i in range(10)],
+            "RANGE_ERROR": [round(5 * i,2) for i in range(10)],
+            "BEARING_ERROR": [round(5 * i,2) for i in range(10)],
+            "ACCELERATION_ERROR": [round(5 * i,2) for i in range(10)],
+            "SPEED_CALIBRATION_ERROR": [round(5 * i,2) for i in range(10)],
+            "HEADING_CALIBRATION_ERROR": [round(5 * i,2) for i in range(10)],
+            "RANGE_CALIBRATION_ERROR": [round(5 * i,2) for i in range(10)],
+            "BEARING_CALIBRATION_ERROR": [round(5 * i,2) for i in range(10)],
+            "ACCELERATION_CALIBRATION_ERROR": [round(5 * i,2) for i in range(10)]
+
             }
         #Steps taken per simulation
         self.steps = steps
@@ -36,13 +47,13 @@ class MultiRunner():
         for scenario in scenarios:
             print("Scenario " + str(list(zip(var_names, scenario))))
             settings = FlockSettings()
-            settings.set(Setting["DRONE_OBJECTIVE"], DroneObjective.FOLLOW_CIRCLE)
+            settings.set(Setting["DRONE_OBJECTIVE"], DroneObjective.RACETRACK)
 
             for var, val in zip(var_names, scenario):
                 settings.set(Setting[var], val)
             
             # Make directory name for a set of simulation parameters
-            directory = "out\\FIXED_RACETRACK_MULTIVAR_STEADY\\" + "-".join(var_names) + "\\" + "\\".join(str(s) for s in scenario)
+            directory = "out\\FOLLOW_CIRCLE_SPREAD\\" + "-".join(var_names) + "\\" + "\\".join(str(s) for s in scenario)
             if not os.path.exists(directory):
                 os.makedirs(directory)
             output_metadata(settings, directory)
@@ -79,15 +90,15 @@ class MultiRunner():
         return [self.variables[var] for var in group]
 
 if __name__ == "__main__":
-    # for var in ["FLOCK_SIZE", "BANDWIDTH", "PACKET_LOSS", "SPEED_ERROR", "HEADING_ERROR", 
-    #             "RANGE_ERROR", "BEARING_ERROR", "ACCELERATION_ERROR", "SPEED_CALIBRATION_ERROR",
-    #             "HEADING_CALIBRATION_ERROR", "RANGE_CALIBRATION_ERROR", "BEARING_CALIBRATION_ERROR",
-    #             "ACCELERATION_CALIBRATION_ERROR"]:
+     for var in ["FLOCK_SIZE", "BANDWIDTH", "PACKET_LOSS", "SPEED_ERROR", "HEADING_ERROR", 
+                 "RANGE_ERROR", "BEARING_ERROR", "ACCELERATION_ERROR", "SPEED_CALIBRATION_ERROR",
+                 "HEADING_CALIBRATION_ERROR", "RANGE_CALIBRATION_ERROR", "BEARING_CALIBRATION_ERROR",
+                 "ACCELERATION_CALIBRATION_ERROR"]:
     # for var in ["FLOCK_SIZE", "BANDWIDTH", "PACKET_LOSS", "SPEED_ERROR", "HEADING_ERROR", 
     #             "RANGE_ERROR", "BEARING_ERROR", "ACCELERATION_ERROR"]:
     #for var in ["BEARING_CALIBRATION_ERROR", "RANGE_CALIBRATION_ERROR", "SPEED_CALIBRATION_ERROR",
     #            "HEADING_CALIBRATION_ERROR","ACCELERATION_CALIBRATION_ERROR"]:
-        #runner = MultiRunner([[var]])
-        #runner.run()
-    runner = MultiRunner([["FLOCK_SIZE"], ["PACKET_LOSS"], ["BANDWIDTH"]])
-    runner.run()
+        runner = MultiRunner([[var]])
+        runner.run()
+   # runner = MultiRunner([["FLOCK_SIZE"], ["PACKET_LOSS"], ["BANDWIDTH"]])
+    #runner.run()
