@@ -10,20 +10,18 @@ from metrics.Density import Density
 from metrics.orientations import OrientationMetric
 from metrics.PerceivedPosMetric import PerceivedPosMetric
 from metrics.speed import Speed
-<<<<<<< HEAD
 #from metrics.trajectories import TrajectoryMetric
 import seaborn as sb
 from scipy.stats import spearmanr
 
-=======
 from metrics.Helper_Functions import moving_average
 from metrics.trajectories import TrajectoryMetric
 #from metrics.trajectories import TrajectoryMetric
 import numpy as np
->>>>>>> racetrack
 from textwrap import wrap
 from matplotlib import cm
 
+from metrics.DistfromRT import distfromRT
 from matplotlib import pyplot as plt
 
 units_list = {
@@ -137,6 +135,7 @@ class Grapher():
         data_folder = directory / "Metric_Data"
         fig_folder = directory / "Graphs"
         if save_data:
+            
             data_folder.mkdir(parents=True, exist_ok=True)
         if graph_func:
             fig_folder.mkdir(parents=True, exist_ok=True)
@@ -150,6 +149,8 @@ class Grapher():
                 metric = metric_info["instance"]
                 name = "{} - {}".format(var.name, metric_name)
                 print(name)
+                if metric_name == "col_num":
+                    reduction="none"
                 ind_var_output = self.get_single_var_data(metric, var, reduction=reduction)
                 if save_data:
                     folder = data_folder / var.name / metric_name    
@@ -378,9 +379,11 @@ def generate_3D_Contour_Plot(dataArray, ylabels, xlabels):
     return fig
 
 def getCorrelations(metric_list: dict, directory: Path):
-    data_path = directory/"Metric_data"
+    data_path = directory/"Metric_Data"
+
+    numOfMetrics = len(metric_list)
     print(len(metric_list))
-    allCoeffs = np.empty([0,len(metric_list)])
+    allCoeffs = np.empty([0,numOfMetrics])
     vars = []
 
     for var in data_path.iterdir():
@@ -388,7 +391,7 @@ def getCorrelations(metric_list: dict, directory: Path):
         coeffs = []
         metrics = []
 
-        for metric in var.iterdir():
+        for metric in var.iterdir():    
             metrics.append(metric.name)
             vals = []
             labels = []
@@ -396,27 +399,35 @@ def getCorrelations(metric_list: dict, directory: Path):
             for val in metric.iterdir():
                 data = pd.read_csv(val / "metric_data.csv")
                 l = data.iloc[:,1].to_numpy()
-                meanVal = np.mean(data.iloc[:,1].to_numpy())
+                if metric.name == "col_num":
+                    meanVal = np.sum(data.iloc[:,1].to_numpy())
+                else:
+                    meanVal = np.mean(data.iloc[:,1].to_numpy())
                 vals.append(meanVal)
                 labels.append(val.name)
-
+                
+            if metric.name=="col_num":
+                print("VAR: ", var.name)
+                print(determineCoefficient(labels, vals))
             coeffs.append(determineCoefficient(labels, vals))
 
+        print(var.name)
         allCoeffs = np.vstack([allCoeffs, coeffs])
 
-    allCoeffs = np.reshape(allCoeffs, [10,13]) 
+    print(allCoeffs)
+    allCoeffs = zip(*allCoeffs)
+    print(allCoeffs)
 
     i = 0
+
     for metricCoeffs in allCoeffs:
         print("METRIC: ", metrics[i] )
         i += 1
         sortedVars = sort_list(vars, metricCoeffs)
-        
         metricCoeffs = np.sort(metricCoeffs)
-        print(metricCoeffs)
         j = len(vars) - 1
         for var in sortedVars:
-            print(vars[j], ": ", metricCoeffs[j])
+            print(sortedVars[j], ": ", metricCoeffs[j])
             j-= 1
 
 
@@ -437,13 +448,7 @@ def determineCoefficient(d1, d2):
 
 if __name__ == "__main__":
     grapher = Grapher()
-    metric_list = {
-                    "cdm": {
-                        "desc": "Distance between drones and centre of flock",
-                        "unit": "m",
-                        "axis_label": "Average Distance From the Centre",
-                        "instance": CentreDistMetric(),
-                        },
+    metric_list = {                   
                     "sep_min": {
                         "desc": "Minimum separation between drones",
                         "unit": "m",
@@ -464,16 +469,16 @@ if __name__ == "__main__":
                         },
                    "col_num": {
                         "desc": "Total number of collisions",
-                        "unit": "",
+                         "unit": "",
                         "axis_label": "Number of Collisions",
                         "instance": CollisionsNumber()
                         },
-                     "density": {
-                         "desc": "Density of the swarm",
-                         "unit": "m$^2$",
-                         "axis_label": "Swarm Density",
-                         "instance": Density()
-                         },
+                   #  "density": {
+                   #      "desc": "Density of the swarm",
+                   #      "unit": "m$^2$",
+                   #      "axis_label": "Swarm Density",
+                   #      "instance": Density()
+                   #      },
                     "orient": {
                         "desc": "S.D of drone orientations",
                         "unit": "$^\circ$",
@@ -488,31 +493,40 @@ if __name__ == "__main__":
                         },
                     "speed": {
                         "desc": "Speed of drones",
-                        "unit": "m/s",
+                         "unit": "m/s",
                         "axis_label": "Speed",
                         "instance": Speed()
                         },
-                     "traj": {
-                         "desc": "Difference from optimal trajectory",
-                         "unit": "$^\circ$",
-                         "axis_label": "Angle From Optimal Trajectory",
-                         "instance": TrajectoryMetric()
-                         }
-                   }
+                #    "traj": {
+                #         "desc": "Difference from optimal trajectory",
+                #         "unit": "$^\circ$",
+                #         "axis_label": "Angle From Optimal Trajectory",
+                #         "instance": TrajectoryMetric()
+                #         },
+                    "dist": {
+                         "desc": "Distance from Racetrack",
+                         "unit": "m",
+                         "axis_label": "Distance from Racetrack",
+                         "instance": distfromRT()
+                        }
+                    }
+                    
 
     print("start")
     # Path to the data that is being graphed
     #p = Path("out/FOLLOW_CIRCLE_MULTI/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5")
-    p = Path("out/RACETERACK_EXTENDED")
+    p = Path("out/FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA")
     # Will write all metric data and make graphs automatically
     # Graph_func should have the same parameters as the defined ones, and as many keyword arguments
     # (e.g. "bar_reduction") as needed
     # Example for making a bar chart with the mean of the last 100 values in the run:
-    grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_bar_chart,
-                              bar_reduction="last100", save_folder="bar")
-    grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_smooth_line_chart,
-                            save_folder = "line")
+    #grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_bar_chart,
+    #                          bar_reduction="sum", save_folder="bar", save_data = True)
+    #grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_smooth_line_chart,
+#                            save_folder = "line", save_data = True)
 
+
+    #grapher.get_all_var_data(metric_list, p)
 
     # Example of running a line graph on all of the data:
     # grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_line_chart, save_folder="line")
@@ -535,7 +549,7 @@ if __name__ == "__main__":
         #axis1, axis2, arr = grapher.read_multi_data(p, metric_name)
   #      multivar_grapher(metric_list, p, graph_func1 = generate_3DBarChart, graph_func2 = generate_MultiVar_heatmap, graph_func3 = generate_3D_Contour_Plot)
         
-    getCorrelations(metric_list, p)     
+    getCorrelations(metric_list, p)         
         #fig = generate_3DBarChart(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
         
     #generate_MultiVar_heatmap(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
