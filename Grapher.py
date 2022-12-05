@@ -11,7 +11,6 @@ from metrics.orientations import OrientationMetric
 from metrics.PerceivedPosMetric import PerceivedPosMetric
 from metrics.speed import Speed
 <<<<<<< HEAD
-from metrics.trajectories import TrajectoryMetric
 #from metrics.trajectories import TrajectoryMetric
 import seaborn as sb
 from scipy.stats import spearmanr
@@ -169,10 +168,8 @@ class Grapher():
                     fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
                     plt.close(fig)
 
-<<<<<<< HEAD
 
     
-=======
     def generate_smooth_line_chart(self, data, metric_info, var):
         var_name = " ".join([w.capitalize() for w in var.split("_")])
         fig = plt.figure()
@@ -195,7 +192,6 @@ class Grapher():
         return fig
 
 
->>>>>>> racetrack
     def generate_line_chart(self, data, metric_info, var):
         var_name = " ".join([w.capitalize() for w in var.split("_")])
 
@@ -215,11 +211,7 @@ class Grapher():
         legend_title = "\n".join(wrap(legend_title, 20))
         l = ax.legend(title=legend_title, bbox_to_anchor=(1.04,1), loc="upper left")
         plt.setp(l.get_title(), multialignment='center')
-<<<<<<< HEAD
 
-=======
-        print("DONE")
->>>>>>> racetrack
         return fig
 
     
@@ -422,7 +414,7 @@ def getCorrelations(metric_list: dict, directory: Path):
         
         metricCoeffs = np.sort(metricCoeffs)
         print(metricCoeffs)
-        j = len(vars)
+        j = len(vars) - 1
         for var in sortedVars:
             print(vars[j], ": ", metricCoeffs[j])
             j-= 1
@@ -458,7 +450,6 @@ if __name__ == "__main__":
                         "axis_label": "Minimum Drone Separation",
                         "instance": Separation()
                         },
-<<<<<<< HEAD
                    "sep_max": {
                         "desc": "Maximum separation between drones",
                         "unit": "m",
@@ -477,26 +468,6 @@ if __name__ == "__main__":
                         "axis_label": "Number of Collisions",
                         "instance": CollisionsNumber()
                         },
-=======
-                    "sep_max": {
-                         "desc": "Maximum separation between drones",
-                         "unit": "m",
-                         "axis_label": "Maximum Drone Separation",
-                         "instance": Separation(reduction="max")
-                         },
-                    "sep_mean": {
-                         "desc": "Mean separation between drones",
-                         "unit": "m",
-                         "axis_label": "Mean Drone Separation",
-                         "instance": Separation(reduction="mean")
-                         },
-                    "col_num": {
-                         "desc": "Total number of collisions",
-                         "unit": "",
-                         "axis_label": "Number of Collisions",
-                         "instance": CollisionsNumber()
-                         },
->>>>>>> racetrack
                      "density": {
                          "desc": "Density of the swarm",
                          "unit": "m$^2$",
@@ -532,13 +503,16 @@ if __name__ == "__main__":
     print("start")
     # Path to the data that is being graphed
     #p = Path("out/FOLLOW_CIRCLE_MULTI/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5")
-    p = Path("out/RACETRACK_EXTENDED")
+    p = Path("out/RACETERACK_EXTENDED")
     # Will write all metric data and make graphs automatically
     # Graph_func should have the same parameters as the defined ones, and as many keyword arguments
     # (e.g. "bar_reduction") as needed
     # Example for making a bar chart with the mean of the last 100 values in the run:
-    # grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_bar_chart, specific_param=["BANDWIDTH"],
-    #                          bar_reduction="last100")
+    grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_bar_chart,
+                              bar_reduction="last100", save_folder="bar")
+    grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_smooth_line_chart,
+                            save_folder = "line")
+
 
     # Example of running a line graph on all of the data:
     # grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_line_chart, save_folder="line")
@@ -567,11 +541,5 @@ if __name__ == "__main__":
     #generate_MultiVar_heatmap(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
 
     
-<<<<<<< HEAD
 
 
-=======
-    #i will add that, bar charts, and moving average in next iteration
-    p = Path("out/FIXED_HEADING_ULTRA_EXTENDED")
-    grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_smooth_line_chart)
->>>>>>> racetrack
