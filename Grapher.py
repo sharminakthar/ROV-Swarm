@@ -10,8 +10,11 @@ from metrics.Density import Density
 from metrics.orientations import OrientationMetric
 from metrics.PerceivedPosMetric import PerceivedPosMetric
 from metrics.speed import Speed
+from metrics.trajectories import TrajectoryMetric
 #from metrics.trajectories import TrajectoryMetric
 import seaborn as sb
+from scipy.stats import spearmanr
+
 from textwrap import wrap
 from matplotlib import cm
 
@@ -238,9 +241,9 @@ def multivar_grapher( metric_list: dict, directory: Path, reduction: str="mean",
                 print("metric name: ",metric_name)
                 if metric_name =="col_num":
                     print("sum")
-                    axis1, axis2, arr = read_multi_data(p, metric_name, reduction="sum")
+                    axis1, axis2, arr = read_multi_data(directory, metric_name, reduction="sum")
                 else:
-                    axis1, axis2, arr = read_multi_data(p, metric_name)
+                    axis1, axis2, arr = read_multi_data(directory, metric_name)
                 
                 if graph_func1 is not None: 
                     fig = graph_func1(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
@@ -346,6 +349,63 @@ def generate_3D_Contour_Plot(dataArray, ylabels, xlabels):
     #ax.contour3D(X, Y, Z, cmap="binary")
     return fig
 
+def getCorrelations(metric_list: dict, directory: Path):
+    data_path = directory/"Metric_data"
+    print(len(metric_list))
+    allCoeffs = np.empty([0,len(metric_list)])
+    vars = []
+
+    for var in data_path.iterdir():
+        vars.append(var.name)
+        coeffs = []
+        metrics = []
+
+        for metric in var.iterdir():
+            metrics.append(metric.name)
+            vals = []
+            labels = []
+
+            for val in metric.iterdir():
+                data = pd.read_csv(val / "metric_data.csv")
+                l = data.iloc[:,1].to_numpy()
+                meanVal = np.mean(data.iloc[:,1].to_numpy())
+                vals.append(meanVal)
+                labels.append(val.name)
+
+            coeffs.append(determineCoefficient(labels, vals))
+
+        allCoeffs = np.vstack([allCoeffs, coeffs])
+
+    allCoeffs = np.reshape(allCoeffs, [10,13]) 
+
+    i = 0
+    for metricCoeffs in allCoeffs:
+        print("METRIC: ", metrics[i] )
+        i += 1
+        sortedVars = sort_list(vars, metricCoeffs)
+        
+        metricCoeffs = np.sort(metricCoeffs)
+        print(metricCoeffs)
+        j = len(vars)
+        for var in sortedVars:
+            print(vars[j], ": ", metricCoeffs[j])
+            j-= 1
+
+
+
+
+def sort_list(list1, list2):
+ 
+    zipped_pairs = zip(list2, list1)
+ 
+    z = [x for _, x in sorted(zipped_pairs)]
+ 
+    return z 
+
+
+def determineCoefficient(d1, d2):
+    corr, _ = spearmanr(d1,d2)
+    return corr
 
 if __name__ == "__main__":
     grapher = Grapher()
@@ -404,18 +464,18 @@ if __name__ == "__main__":
                         "axis_label": "Speed",
                         "instance": Speed()
                         },
-                    # "traj": {
-                    #     "desc": "Difference from optimal trajectory",
-                    #     "unit": "$^\circ$",
-                    #     "axis_label": "Angle From Optimal Trajectory",
-                    #     "instance": TrajectoryMetric()
-                    #     }
+                     "traj": {
+                         "desc": "Difference from optimal trajectory",
+                         "unit": "$^\circ$",
+                         "axis_label": "Angle From Optimal Trajectory",
+                         "instance": TrajectoryMetric()
+                         }
                    }
 
     print("start")
     # Path to the data that is being graphed
     #p = Path("out/FOLLOW_CIRCLE_MULTI/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5")
-    p = Path("out/FIXED_RACETRACK_MULTIVAR_STEADY/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5")
+    p = Path("out/RACETRACK_EXTENDED")
     # Will write all metric data and make graphs automatically
     # Graph_func should have the same parameters as the defined ones, and as many keyword arguments
     # (e.g. "bar_reduction") as needed
@@ -440,11 +500,11 @@ if __name__ == "__main__":
       #      name = "{} - {}".format(var.name, metric_name)
        #     print(name)
 
-    for metric_name, metric_info in metric_list.items():
+ #   for metric_name, metric_info in metric_list.items():
         #axis1, axis2, arr = grapher.read_multi_data(p, metric_name)
-        multivar_grapher(metric_list, p, graph_func1 = generate_3DBarChart, graph_func2 = generate_MultiVar_heatmap, graph_func3 = generate_3D_Contour_Plot)
+  #      multivar_grapher(metric_list, p, graph_func1 = generate_3DBarChart, graph_func2 = generate_MultiVar_heatmap, graph_func3 = generate_3D_Contour_Plot)
         
-        
+    getCorrelations(metric_list, p)     
         #fig = generate_3DBarChart(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
         
     #generate_MultiVar_heatmap(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
