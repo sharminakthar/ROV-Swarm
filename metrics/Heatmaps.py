@@ -64,20 +64,20 @@ def GetHeatmap(mission,para,run,bins,path):
                 p4 = [3500,3500]
                 x2, y2 = [p3[0], p4[0]], [p3[1], p4[1]]
 
-                axes[i][j].plot(arc_xs, arc_ys, color = 'green', lw = lw)
-                axes[i][j].plot(arc_xs2, arc_ys2, color = 'green', lw = lw)
-                axes[i][j].plot( x , y , lw=lw , color = 'green')
-                axes[i][j].plot( x2 , y2 , lw=lw ,color = 'green' )
+                axes[i][j].plot(arc_xs, arc_ys, color = '#39FF14', lw = lw)
+                axes[i][j].plot(arc_xs2, arc_ys2, color = '#39FF14', lw = lw)
+                axes[i][j].plot( x , y , lw=lw , color = '#39FF14')
+                axes[i][j].plot( x2 , y2 , lw=lw ,color = '#39FF14' )
 
-    fig.suptitle(str.title(para.replace("_", " " )), fontsize=16)
+    fig.suptitle('Heatmap for Follow Circle under varying '+str.title(para.replace("_", " " )), fontsize=16)
     plt.tight_layout()
-    plt.show()
+    fig.savefig((para + run +".png"), bbox_inches="tight")
 
 
 if __name__ == "__main__":
 
     bins = 200
-    run = '2'
+    run = '4'
     mission = {
         '1' : 'FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA',
         '2' : 'FIXED_HEADING',
@@ -100,7 +100,16 @@ if __name__ == "__main__":
         '13' : 'SPEED_ERROR',
         }
 
-    GetHeatmap(mission['3'],parameters['6'],run,bins,1)
+    for x in range(5):
+
+        GetHeatmap(mission['1'],parameters['2'],str(x),bins,1)
+        GetHeatmap(mission['1'],parameters['3'],str(x),bins,1)
+        GetHeatmap(mission['1'],parameters['5'],str(x),bins,1)
+        GetHeatmap(mission['1'],parameters['6'],str(x),bins,1)
+        GetHeatmap(mission['1'],parameters['8'],str(x),bins,1)
+        GetHeatmap(mission['1'],parameters['9'],str(x),bins,1)
+        GetHeatmap(mission['1'],parameters['11'],str(x),bins,1)
+        GetHeatmap(mission['1'],parameters['13'],str(x),bins,1)
 
 
     print("done")
