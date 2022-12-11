@@ -2,10 +2,12 @@ from tokenize import group
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from .BaseMetric import BaseMetric
+from BaseMetric import BaseMetric
 from pandas import DataFrame
 from pandas import *
 from matplotlib import pyplot as plt
+import pickle
+import csv
 
 class CollisionsNumber(BaseMetric):
 
@@ -35,10 +37,15 @@ if __name__ == "__main__":
     metric = CollisionsNumber()
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "../out/FLOCK_SIZE"
+    path_name = "../out/FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA/PACKET_LOSS"
     p = Path(path_name)
     print("running")
     data = metric.run_metric(p)
+
+    with open("CN_PL_CIRCLE.txt", "wb") as myFile:
+        pickle.dump(data, myFile)
+
+
     # "dictionary comprehension"
     heights = {k:0 for k in data.keys()}
     for k,d in data.items():

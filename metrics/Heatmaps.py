@@ -1,5 +1,4 @@
 from pathlib import Path
-from BaseMetric import BaseMetric
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.patches import Circle
