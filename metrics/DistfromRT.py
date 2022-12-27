@@ -37,9 +37,10 @@ if __name__ == "__main__":
     metric = distfromRT()
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "../out/RACETRACK_EXTENDED/PACKET_LOSS"
+    path_name = "../out/FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA/PACKET_LOSS"
     p = Path(path_name)
     data = metric.run_metric(p)
+    print('running')
 
     with open("DRT_PL.txt", "wb") as myFile:
         pickle.dump(data, myFile)

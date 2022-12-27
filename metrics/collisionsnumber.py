@@ -42,7 +42,7 @@ if __name__ == "__main__":
     print("running")
     data = metric.run_metric(p)
 
-    with open("CN_PL_CIRCLE.txt", "wb") as myFile:
+    with open("CN_PL.txt", "wb") as myFile:
         pickle.dump(data, myFile)
 
 
