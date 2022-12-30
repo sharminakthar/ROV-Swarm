@@ -6,15 +6,15 @@ from .Helper_Functions import getOrientations
 from matplotlib import pyplot as plt
 import numpy as np
 
-class TrajectoryMetric(BaseMetric):
+class TPTrajectoryMetric(BaseMetric):
     def __init__(self):
         super().__init__()
-    
+
     def optimaltrajectories(self, df: pd.DataFrame) -> pd.DataFrame:
         #STRAIGHT LINE HEADING:
         targX = 2500
         targY = 2500
-        new_df = df
+        new_df = df 
         new_df = new_df.assign(XPos = df["X Position"].sub(targX))
         new_df = new_df.assign(YPos = df["Y Position"].sub(targY))
 
@@ -46,8 +46,8 @@ class TrajectoryMetric(BaseMetric):
         
 
 if __name__ == "__main__":
-    metric = TrajectoryMetric()
-
+    metric = TPTrajectoryMetric()
+    
     # Replace path name with absolute path if not running from inside the metrics folder
     path_name = "../out/FLOCK_SIZE"
     p = Path(path_name)
