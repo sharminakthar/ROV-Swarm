@@ -20,6 +20,7 @@ from metrics.trajectories import TPTrajectoryMetric
 #from metrics.trajectories import FHTrajectoryMetric
 import numpy as np
 from textwrap import wrap
+import seaborn as sb
 from matplotlib import cm
 
 from metrics.DistfromRT import distfromRT
@@ -27,7 +28,9 @@ from matplotlib import pyplot as plt
 import os
 #impo
 #from sklearn import linear_model
-
+from mpl_toolkits.mplot3d import Axes3D
+from sklearn import linear_model
+import itertools
 
 
 
@@ -157,7 +160,7 @@ class Grapher():
             if specific_param is not None and not var.name in specific_param:
                 print(var.name)
                 continue
-            if var.name in ["Graphs", "Metric_Data"]:
+            if var.name in ["Graphs", "Metric_Data"] or var.name in ["FLOCK_SIZE", "BANDWIDTH", "BEARING_ERROR", "BEARING_CALIBRATION_ERROR", "ACCELERATION_ERROR", "ACCELERATION_CALIBRATION_ERROR"]:
                 continue
             for metric_name, metric_info in metric_list.items():
                 metric = metric_info["instance"]
@@ -398,7 +401,7 @@ def generate_3D_Contour_Plot(dataArray, ylabels, xlabels):
 
     ax.plot_surface(x, y, top, cmap="autumn_r", lw=0.5, rstride=1, cstride=1, alpha=0.5)
     ax.contour(x, y, top, 10, lw=3, cmap="autumn_r", linestyles="solid", offset=-1)
-    ax.contour(x, y,top, 10, lw=3, colors="k", linestyles="solid")
+    #ax.contour(x, y,top, 10, lw=3, colors="k", linestyles="solid")
     #ax.contour3D(X, Y, Z, cmap="binary")
     return fig
 
@@ -476,8 +479,12 @@ def regressionGrad(X, y):
     #y = distacne from rt
     regr = linear_model.LinearRegression()
     regr.fit(X, y)
-    predicted = regr.predict([[2300, 1300]])
-
+    predicted = regr.predict([[90, 1]])
+    arr = []
+    for x in range(10):
+        predicted = regr.predict([[x*10, 2.2 - (x/10) * 2]])
+        arr.append(1 - predicted)
+    return arr
 
 
 
@@ -538,32 +545,33 @@ if __name__ == "__main__":
                     #     "axis_label": "Angle From Optimal Trajectory",
                     #     "instance": TPTrajectoryMetric()
                      #   },
-                    #"distfromRT": {
-                    #     "desc": "Distance from Racetrack",
-                    #     "unit": "m",
-                    #     "axis_label": "Distance from Racetrack",
-                    #     "instance": distfromRT()
-                    #    },
+                    "distfromRT": {
+                         "desc": "Distance from Racetrack",
+                         "unit": "m",
+                         "axis_label": "Distance from Racetrack",
+                         "instance": distfromRT()
+                        },
                     #"distfromCircle": {
                     #     "desc": "Distance from Circle",
                     #     "unit": "m",
                     #     "axis_label": "Distance from Circle",
                     #     "instance": circleCentreDist()
                     #    },
-                    "FHtraj" : {
-                        "desc": "Difference from optimal trajectory",
-                        "unit": "$^\circ$",
-                        "axis_label": "Angle from Optimal trajectory",
-                        "instance": FHTrajectoryMetric()
-                    }
+                    #"FHtraj" : {
+                    #    "desc": "Difference from optimal trajectory",
+                    #    "unit": "$^\circ$",
+                    #    "axis_label": "Angle from Optimal trajectory",
+                    #    "instance": FHTrajectoryMetric()
+                    #}
                     
     }
 
 
 
     print("start")
-    # Path to the data that is being graphed
-    p = Path("out/RACETRACK_MULTI_HEADING_BEARING/FLOCK_SIZE-BEARING_ERROR-HEADING_ERROR/5")
+    # Path to the data that is 
+    # being graphed
+    p = Path("out/FIXED_HEADING")
   #  p = Path("out/RTSING2")
     # Will write all metric data and make graphs automatically
     # Graph_func should have the same parameters as the defined ones, and as many keyword arguments
@@ -578,10 +586,10 @@ if __name__ == "__main__":
     #grapher.get_all_var_data(metric_list, p)
 
     # Example of running a line graph on all of the data:
-    #grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_line_chart, save_folder="line")
+    grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_line_chart, save_folder="line")
     #grapher.get_all_var_data(metric_list, p)
 
-    grapher.get_all_var_data(metric_list, p, save_folder="Multivar")
+   # grapher.get_all_var_data(metric_list, p, save_folder="Multivar")
 
 
     #axis1, axis2, arr = grapher.read_multi_data(Path("out/FIXED_RACETRACK_MULTIVAR/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5"), "cdm")
@@ -595,7 +603,46 @@ if __name__ == "__main__":
        #     print(name)
 
     #for metric_name, metric_info in metric_list.items():
-     #   axis1, axis2, arr = read_multi_data(p, metric_name)
+    '''metric_name = "distfromRT"
+    axis1, axis2, arr = read_multi_data(p, metric_name) 
+    print(axis1)
+    c = list(itertools.product(axis1, axis2))
+    output = arr.flatten()
+        #print(output)
+    c1 = list(zip(*c))[0]
+    c2 = list(zip(*c))[1]
+
+    ##print(c1)
+    #print(c2)
+    df = pd.DataFrame({'x':c1, 'y':c2})
+
+    df["output"] = output
+    df["output"] = (df["output"]  - df["output"].min()) /( df["output"].abs().max() - df["output"].min())
+
+        #print(df)
+
+        #print(len(df["output"]))
+        #print(len(df["x"]))
+        #print(len(df["y"]))
+
+
+
+
+        #fig=plt.figure()
+        #ax=fig.add_subplot(111,projection='3d')
+
+        #ax.scatter(df["x"],df["y"],df["output"],color="red")
+        #ax.set_xlabel("x")
+        #ax.set_ylabel("y")
+        #ax.set_zlabel("dist from rt")
+
+        #plt.show()
+    print(metric_name)
+    #print(df[["x", "y"]])
+    print(regressionGrad(df[["x","y"]],df["output"] ))
+
+
+    '''
       #  multivar_grapher(metric_list, p, graph_func1 = generate_3DBarChart, graph_func2 = generate_MultiVar_heatmap, graph_func3 = generate_3D_Contour_Plot)
         
     #getCorrelations(metric_list, p)         
