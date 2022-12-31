@@ -10,19 +10,26 @@ from metrics.Density import Density
 from metrics.orientations import OrientationMetric
 from metrics.PerceivedPosMetric import PerceivedPosMetric
 from metrics.speed import Speed
+from metrics.Fixed_Heading_traj import FHTrajectoryMetric
 #from metrics.trajectories import TrajectoryMetric
 import seaborn as sb
 from scipy.stats import spearmanr
 
 from metrics.Helper_Functions import moving_average
-from metrics.trajectories import TrajectoryMetric
-#from metrics.trajectories import TrajectoryMetric
+from metrics.trajectories import TPTrajectoryMetric
+#from metrics.trajectories import FHTrajectoryMetric
 import numpy as np
 from textwrap import wrap
 from matplotlib import cm
 
 from metrics.DistfromRT import distfromRT
 from matplotlib import pyplot as plt
+import os
+#impo
+#from sklearn import linear_model
+
+
+
 
 units_list = {
     "ACCELERATION_CALIBRATION_ERROR": "m/s$^2$",
@@ -61,6 +68,7 @@ class Grapher():
         """
         results = {}
         dirs = filter(lambda x: x.is_dir(), directory.iterdir())
+        reduction = "mean"
         for i, run in enumerate(dirs):
             run = run / "raw_data_log.csv"
             data = pd.read_csv(run)
@@ -89,6 +97,7 @@ class Grapher():
             A dictionary linking each variable value to the values of the metric at each timestep.
         """
         ind_var_output = {}
+        reduction = "mean"
         for ind_var in directory.iterdir():
             df = self.get_single_val_data(metric, ind_var)
             result = None
@@ -140,8 +149,13 @@ class Grapher():
         if graph_func:
             fig_folder.mkdir(parents=True, exist_ok=True)
         
+
+        print("BEGIN")
         for var in directory.iterdir():
+            print(var.name)
+
             if specific_param is not None and not var.name in specific_param:
+                print(var.name)
                 continue
             if var.name in ["Graphs", "Metric_Data"]:
                 continue
@@ -157,8 +171,9 @@ class Grapher():
                     
                     for k, v in ind_var_output.items():
                         f = folder / k
-                        f.mkdir(parents=True, exist_ok=True)
-                        v.to_csv(path_or_buf=(f / "metric_data.csv"), index=False)
+                        if os.path.exists(f/"metric_data.csv") == False:
+                            f.mkdir(parents=True, exist_ok=True)
+                            v.to_csv(path_or_buf=(f / "metric_data.csv"), index=False)
 
                 if graph_func is not None:
                     fig = graph_func(ind_var_output, metric_info, var.name, **kwargs)
@@ -274,6 +289,7 @@ def multivar_grapher( metric_list: dict, directory: Path, reduction: str="mean",
                 else:
                     axis1, axis2, arr = read_multi_data(directory, metric_name)
                 
+                
                 if graph_func1 is not None: 
                     fig = graph_func1(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
                     folder = fig_folder / metric_name
@@ -320,9 +336,13 @@ def generate_MultiVar_heatmap( dataArray, xlabels, ylabels):
         #var2_name = " ".join([w.capitalize() for w in var2.split("_")])
         
         #mvData = pd.DataFrame(dataArray, columns=xlabels, index=ylabels).pivot(("{} ({})".format(var1_name, units_list[var1])), ("{} ({})".format(var2_name, units_list[var2])), "{} ({})".format(metric_info["axis_label"], metric_info["unit"]))
-        mvData = pd.DataFrame(dataArray, columns=ylabels, index=xlabels)
+        
         xlabels = np.round_(xlabels, decimals = 2)
         ylabels = np.round_(ylabels, decimals = 2)
+        mvData = pd.DataFrame(dataArray, columns=ylabels, index=xlabels)
+
+
+
         minValue = mvData.min().min()
         maxValue = mvData.max().max()
         fig = sb.heatmap(mvData, vmin = minValue, vmax = maxValue).get_figure()
@@ -335,6 +355,8 @@ def generate_3DBarChart( dataArray, ylabels, xlabels):
 
 
         fig = plt.figure(figsize=(8, 3))
+        xlabels = np.round_(xlabels, decimals = 2)
+        ylabels = np.round_(ylabels, decimals = 2)
         ax1 = fig.add_subplot(121, projection='3d')
         print(xlabels)
         print(ylabels)
@@ -359,6 +381,8 @@ def generate_3DBarChart( dataArray, ylabels, xlabels):
 
 
 def generate_3D_Contour_Plot(dataArray, ylabels, xlabels):
+    xlabels = np.round_(xlabels, decimals = 2)
+    ylabels = np.round_(ylabels, decimals = 2)
     _x = xlabels
     _y = ylabels
     x, y = np.meshgrid(_x, _y)
@@ -446,6 +470,17 @@ def determineCoefficient(d1, d2):
     corr, _ = spearmanr(d1,d2)
     return corr
 
+
+def regressionGrad(X, y):
+    #x - xlabels and y labels
+    #y = distacne from rt
+    regr = linear_model.LinearRegression()
+    regr.fit(X, y)
+    predicted = regr.predict([[2300, 1300]])
+
+
+
+
 if __name__ == "__main__":
     grapher = Grapher()
     metric_list = {                   
@@ -473,12 +508,12 @@ if __name__ == "__main__":
                         "axis_label": "Number of Collisions",
                         "instance": CollisionsNumber()
                         },
-                   #  "density": {
-                   #      "desc": "Density of the swarm",
-                   #      "unit": "m$^2$",
-                   #      "axis_label": "Swarm Density",
-                   #      "instance": Density()
-                   #      },
+                     #"density": {
+                     #    "desc": "Density of the swarm",
+                     #    "unit": "m$^2$",
+                     #    "axis_label": "Swarm Density",
+                     #    "instance": Density()
+                     #    },
                     "orient": {
                         "desc": "S.D of drone orientations",
                         "unit": "$^\circ$",
@@ -497,25 +532,39 @@ if __name__ == "__main__":
                         "axis_label": "Speed",
                         "instance": Speed()
                         },
-                #    "traj": {
-                #         "desc": "Difference from optimal trajectory",
-                #         "unit": "$^\circ$",
-                #         "axis_label": "Angle From Optimal Trajectory",
-                #         "instance": TrajectoryMetric()
-                #         },
-                    "dist": {
-                         "desc": "Distance from Racetrack",
-                         "unit": "m",
-                         "axis_label": "Distance from Racetrack",
-                         "instance": distfromRT()
-                        }
+                    #"TPtraj": {
+                    #     "desc": "Difference from optimal trajectory",
+                    #     "unit": "$^\circ$",
+                    #     "axis_label": "Angle From Optimal Trajectory",
+                    #     "instance": TPTrajectoryMetric()
+                     #   },
+                    #"distfromRT": {
+                    #     "desc": "Distance from Racetrack",
+                    #     "unit": "m",
+                    #     "axis_label": "Distance from Racetrack",
+                    #     "instance": distfromRT()
+                    #    },
+                    #"distfromCircle": {
+                    #     "desc": "Distance from Circle",
+                    #     "unit": "m",
+                    #     "axis_label": "Distance from Circle",
+                    #     "instance": circleCentreDist()
+                    #    },
+                    "FHtraj" : {
+                        "desc": "Difference from optimal trajectory",
+                        "unit": "$^\circ$",
+                        "axis_label": "Angle from Optimal trajectory",
+                        "instance": FHTrajectoryMetric()
                     }
                     
+    }
+
+
 
     print("start")
     # Path to the data that is being graphed
-    #p = Path("out/FOLLOW_CIRCLE_MULTI/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5")
-    p = Path("out/FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA")
+    p = Path("out/RACETRACK_MULTI_HEADING_BEARING/FLOCK_SIZE-BEARING_ERROR-HEADING_ERROR/5")
+  #  p = Path("out/RTSING2")
     # Will write all metric data and make graphs automatically
     # Graph_func should have the same parameters as the defined ones, and as many keyword arguments
     # (e.g. "bar_reduction") as needed
@@ -529,10 +578,10 @@ if __name__ == "__main__":
     #grapher.get_all_var_data(metric_list, p)
 
     # Example of running a line graph on all of the data:
-    # grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_line_chart, save_folder="line")
-    # grapher.get_all_var_data(metric_list, p)
+    #grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_line_chart, save_folder="line")
+    #grapher.get_all_var_data(metric_list, p)
 
-    #grapher.get_all_var_data(metric_list, p, save_folder="Multivar")
+    grapher.get_all_var_data(metric_list, p, save_folder="Multivar")
 
 
     #axis1, axis2, arr = grapher.read_multi_data(Path("out/FIXED_RACETRACK_MULTIVAR/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5"), "cdm")
@@ -545,11 +594,11 @@ if __name__ == "__main__":
       #      name = "{} - {}".format(var.name, metric_name)
        #     print(name)
 
- #   for metric_name, metric_info in metric_list.items():
-        #axis1, axis2, arr = grapher.read_multi_data(p, metric_name)
-  #      multivar_grapher(metric_list, p, graph_func1 = generate_3DBarChart, graph_func2 = generate_MultiVar_heatmap, graph_func3 = generate_3D_Contour_Plot)
+    #for metric_name, metric_info in metric_list.items():
+     #   axis1, axis2, arr = read_multi_data(p, metric_name)
+      #  multivar_grapher(metric_list, p, graph_func1 = generate_3DBarChart, graph_func2 = generate_MultiVar_heatmap, graph_func3 = generate_3D_Contour_Plot)
         
-    getCorrelations(metric_list, p)         
+    #getCorrelations(metric_list, p)         
         #fig = generate_3DBarChart(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
         
     #generate_MultiVar_heatmap(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))

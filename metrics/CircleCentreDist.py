@@ -5,7 +5,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import math
 
-class circlecentedist(BaseMetric):
+class circleCentreDist(BaseMetric):
 
     def __init__(self):
         super().__init__()
