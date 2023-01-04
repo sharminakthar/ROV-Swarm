@@ -124,19 +124,24 @@ class DAGraph:
   def MakeGraph(self):
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
-    ax1.plot(self.x_axis, self.y1 , c = 'g')
-    ax2.plot(self.x_axis, self.y2, c = 'b')
+    lns1 = ax1.plot(self.x_axis, self.y1 , c = 'g', label = 'Distance from Racetrack')
+    lns2 = ax2.plot(self.x_axis, self.y2, c = 'b', label ='Collision Number' )
+
+    lns = lns1+lns2
+    labs = [l.get_label() for l in lns]
+    ax1.legend(lns, labs, loc=0)
 
     ax1.set_xlabel('Bandwidth')
-    ax1.set_ylabel('Distance from Racetrack', color='g')
-    ax2.set_ylabel('Collision Number', color='b')
+    ax1.set_ylabel('Distance from Racetrack / m')
+    ax2.set_ylabel('Total number of Collisions')
+    plt.title('Effect of varying bandwidth on the distance \nfrom the racetrack and the total number of collisions')
     plt.show()
 
 
 
 if __name__ == "__main__":
 
-    b = DAGraph("RACETRACK","BE","DRT","CN","2")
+    b = DAGraph("RACETRACK","BW","DRT","CN","0")
     print(b.MakeGraph())
 
     print("done")
