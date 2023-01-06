@@ -20,7 +20,7 @@ def GetHeatmap(mission,para,run,bins,path):
 
     a = int(len(filenames)/3)
     a = 3
-    filenames = ['0','10','20','30','40','50','60','70','80']
+    filenames = ['0','10','20','30','40','50','60','70','90']
 
     fig, axes = plt.subplots(a, 3 ,figsize = [8,8])
 
@@ -52,7 +52,7 @@ def GetHeatmap(mission,para,run,bins,path):
 if __name__ == "__main__":
 
     bins = 200
-    run = '0'
+    run = '3'
     mission = {
         '1' : 'FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA',
         '2' : 'FIXED_HEADING',
