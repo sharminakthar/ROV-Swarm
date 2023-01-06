@@ -166,8 +166,7 @@ class Grapher():
             if specific_param is not None and not var.name in specific_param:
                 print(var.name)
                 continue
-            if var.name in ["Graphs", "Metric_Data"]:
-                continue
+          
             for metric_name, metric_info in metric_list.items():
                 if justGraphs == False:
 
@@ -195,7 +194,10 @@ class Grapher():
                                     v.to_csv(path_or_buf=(f / "metric_data.csv"), index=False)
 
                         if graph_func is not None:
-                            fig = graph_func(self, ind_var_output, metric_info, var.name, **kwargs)
+                            if metric_name == "col_num":
+                                fig = graph_func(self, ind_var_output, metric_info, var.name,  "sum", **kwargs)
+                            else:
+                                fig = graph_func(self, ind_var_output, metric_info, var.name, "mean", **kwargs)
                             folder = fig_folder / var.name / metric_name
                             if save_folder is not None:
                                 folder = folder / save_folder
@@ -207,23 +209,30 @@ class Grapher():
                     folder = data_folder / var.name / metric_name 
                     if graph_func is not None:
                         for k in folder.iterdir():
-                            f =  k
-                            df = pd.read_csv(f/ "metric_data.csv")
-                            ind_var_output[k.name] = df
+                            #if float(k.name) < 51:
+                                f =  k
+                                df = pd.read_csv(f/ "metric_data.csv")
+                                ind_var_output[k.name] = df
+                        
+                        print("WEE")
+                        if metric_name == "col_num":
+                            fig = graph_func(self, ind_var_output, metric_info, var.name,  "sum", **kwargs)
+                        else:
+                            fig = graph_func(self, ind_var_output, metric_info, var.name, "mean", **kwargs)
 
-                        fig = graph_func(self, ind_var_output, metric_info, var.name, **kwargs)
                         folder = fig_folder / var.name / metric_name
                         if save_folder is not None:
                             folder = folder / save_folder
                         folder.mkdir(parents=True, exist_ok=True)
-                        fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
+                        fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")   
                         plt.close(fig)
 
 
 
 
     
-    def generate_smooth_line_chart(self, data, metric_info, var):
+    def generate_smooth_line_chart(self, data, metric_info, var, ignore):
+
         var_name = " ".join([w.capitalize() for w in var.split("_")])
         fig = plt.figure()
         ax = fig.add_subplot()
@@ -245,7 +254,7 @@ class Grapher():
         return fig
 
 
-    def generate_line_chart(self, data, metric_info, var):
+    def generate_line_chart(self, data, metric_info, var, ignore):
         var_name = " ".join([w.capitalize() for w in var.split("_")])
 
         fig = plt.figure()
@@ -269,11 +278,12 @@ class Grapher():
 
     
 
-    def generate_bar_chart(self, data, metric_info, var, bar_reduction="mean"):
+    def generate_bar_chart(self, data, metric_info, var, bar_reduction):
         """
         bar_reduction is one of "mean", "sum", "last", "lastN"
         "lastN" takes the mean of the last N timesteps, where N can be any number 0 < N < 10000
         """
+       # bar_reduction = "std"
         func = determine_bar_reduction(bar_reduction)
 
         var_name = " ".join([w.capitalize() for w in var.split("_")])
@@ -285,6 +295,8 @@ class Grapher():
             d = data[k]
             heights.append(func(d.loc[:, d.columns != "Timestep"].to_numpy()))
 
+        #labels = labels[:len(labels)-4]
+        #heights = heights[:len(heights)-4]
         ax.bar(labels, heights)
         ax.set_title("{} with varying {}".format(metric_info["desc"], var_name), wrap=True)
         ax.set_xlabel("{} ({})".format(var_name, units_list[var]))
@@ -379,6 +391,7 @@ def determine_bar_reduction(bar_reduction):
         "mean": np.mean,
         "sum": np.sum,
         "last": lambda x: x[-1,0],
+        "std" : np.std
     }
     if bar_reduction in func_dict.keys():
         func = func_dict[bar_reduction]
@@ -431,8 +444,8 @@ def generate_3DBarChart( dataArray, ylabels, xlabels):
         top = dataArray.ravel()
         
         bottom = np.zeros_like(top)        
-        #width = xlabels[len(xlabels)-1]/len(xlabels)
-        width = 1/1
+        width = xlabels[len(xlabels)-1]/len(xlabels)
+        #width = 1/1
         depth = ylabels[len(ylabels)-1]/len(ylabels)
         ax1.bar3d(x, y, bottom, width, depth, top, shade=True)
         #ax1.set_title("{} with varying {}".format(metric_info["desc"], var_name), wrap=True)
@@ -462,7 +475,7 @@ def generate_3D_Contour_Plot(dataArray, ylabels, xlabels):
     ax = plt.axes(projection = "3d")
  
     #ax.plot_surface(x, y, top, cmap = cm.coolwarm, lw=0.5, rstride=1, cstride=1)
-    #ax.contour3D(x, y, top, cmap="binary")
+    ax.contour3D(x, y, top, cmap="binary")
 
     ax.plot_surface(x, y, top, cmap="autumn_r", lw=0.5, rstride=1, cstride=1, alpha=0.5)
     ax.contour(x, y, top, 10, lw=3, cmap="autumn_r", linestyles="solid", offset=-1)
@@ -642,7 +655,7 @@ if __name__ == "__main__":
     #print("start")
     # Path to the data that is 
     # being graphed
-    p = Path("out/RACETRACK_MULTI_HEADING_BEARING/FLOCK_SIZE-BEARING_ERROR-HEADING_ERROR/5")
+    p = Path("out/newrt")
   #  p = Path("out/RTSING2")
     # Will write all metric data and make graphs automatically
     # Graph_func should have the same parameters as the defined ones, and as many keyword arguments
@@ -660,8 +673,8 @@ if __name__ == "__main__":
     #grapher.get_all_var_data(metric_list, p, graph_func=grapher.generate_line_chart, save_folder="bar")
     #grapher.get_all_var_data(metric_list, p)
 
-    #grapher.get_all_var_data(metric_list, p, save_folder="line", justGraphs=False, graph_func=Grapher.generate_line_chart)
-    #grapher.get_all_var_data(metric_list, p, save_folder="bar", justGraphs=True, graph_func=Grapher.generate_bar_chart)
+    grapher.get_all_var_data(metric_list, p, save_folder="line", justGraphs=False, graph_func=Grapher.generate_line_chart)
+    #grapher.get_all_var_data(metric_list, p, save_folder="bar", justGraphs=False, graph_func=Grapher.generate_bar_chart)
 
 
     #axis1, axis2, arr = grapher.read_multi_data(Path("out/FIXED_RACETRACK_MULTIVAR/FLOCK_SIZE-PACKET_LOSS-BANDWIDTH/5"), "cdm")
@@ -675,13 +688,13 @@ if __name__ == "__main__":
        #     print(name)
 
     #for metric_name, metric_info in metric_list.items():
-    multivar_grapher(metric_list, p, graph_func1 = generate_3DBarChart, graph_func2 = generate_MultiVar_heatmap, graph_func3 = generate_3D_Contour_Plot)
+    #multivar_grapher(metric_list, p, graph_func1 = generate_3DBarChart, graph_func2 = generate_MultiVar_heatmap, graph_func3 = generate_3D_Contour_Plot)
     '''
     metric_name = "distfromRT"
     axis1, axis2, arr = read_multi_data(p, metric_name) 
     print(axis1)
     c = list(itertools.product(axis1, axis2))
-    output = arr.flatten()
+    output = arr.flatten()s
         #print(output)
     c1 = list(zip(*c))[0]
     c2 = list(zip(*c))[1]
