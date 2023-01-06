@@ -14,7 +14,7 @@ class circlecentedist(BaseMetric):
         x = data.shape[0]
         data = data.sum(axis = 0)
         data = data/x
-        distance = np.abs(1000 - math.hypot(2500 - data["X Position"], 2500 - data["Y Position"]))
+        distance = 1000 - np.abs(math.hypot(2500 - data["X Position"], 2500 - data["Y Position"]))
         return(distance)
 
     
