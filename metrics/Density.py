@@ -1,9 +1,10 @@
 from pathlib import Path
-from .BaseMetric import BaseMetric
+from BaseMetric import BaseMetric
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
+import pickle
 
 class Density(BaseMetric):
 
@@ -20,6 +21,7 @@ class Density(BaseMetric):
         y_array = y_p.to_numpy()
 
         nw_array = np.zeros((data.shape[0],2))
+
         nw_array[:,0] = x_array
         nw_array[:,1] = y_array
 
@@ -43,9 +45,12 @@ if __name__ == "__main__":
     metric = Density()
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "../FOLLOW_CIRCLE_EXTENDED/FLOCK_SIZE"
+    path_name = "../out/RACETRACK_EXTENDED/RANGE_ERROR"
     p = Path(path_name)
     data = metric.run_metric(p)
+
+    with open("DEN_RE.txt", "wb") as myFile:
+        pickle.dump(data, myFile)
     
     for k,d in data.items():
         plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=k)
