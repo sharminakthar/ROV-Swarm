@@ -1,56 +1,19 @@
+import os
+import shutil
 from pathlib import Path
+from textwrap import wrap
+
 import pandas as pd
 import numpy as np
-from metrics.BaseMetric import BaseMetric
-from metrics.CentreDistMetric import CentreDistMetric
-from metrics.Separation import Separation
-
-from metrics.collisionsnumber import CollisionsNumber
-from metrics.Density import Density
-from metrics.orientations import OrientationMetric
-from metrics.PerceivedPosMetric import PerceivedPosMetric
-from metrics.speed import Speed
-from metrics.Fixed_Heading_traj import FHTrajectoryMetric
-#from metrics.trajectories import TrajectoryMetric
 import seaborn as sb
 from scipy.stats import spearmanr
-
-from metrics.Helper_Functions import moving_average
-from metrics.trajectories import TPTrajectoryMetric
-#from metrics.trajectories import FHTrajectoryMetric
-import numpy as np
-from textwrap import wrap
-import seaborn as sb
-from matplotlib import cm
-import os
-import sys
-import shutil
-from metrics.DistfromRT import distfromRT
 from matplotlib import pyplot as plt
-import os
-#impo
-#from sklearn import linear_model
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn import linear_model
-import itertools
+
+from MetricsList import units_list, metric_list
 
 
-
-units_list = {
-    "ACCELERATION_CALIBRATION_ERROR": "m/s$^2$",
-    "ACCELERATION_ERROR": "m/s$^2$",
-    "BANDWIDTH": "B/s",
-    "FLOCK_SIZE": "",
-    "BEARING_CALIBRATION_ERROR": "$^\circ$",
-    "BEARING_ERROR": "$^\circ$",
-    "HEADING_CALIBRATION_ERROR": "$^\circ$",
-    "HEADING_ERROR": "$^\circ$",
-    "PACKET_LOSS": "%",
-    "RANGE_CALIBRATION_ERROR": "m",
-    "RANGE_ERROR": "m",
-    "SPEED_CALIBRATION_ERROR": "m/s",
-    "SPEED_ERROR": "m/s"
-}
 
 class Grapher():
     
@@ -158,7 +121,6 @@ class Grapher():
         print("BEGIN")
         for var in directory.iterdir():
             if var.name in ["Graphs", "Metric_Data"]:
-                
                 continue
             
 
@@ -169,8 +131,6 @@ class Grapher():
           
             for metric_name, metric_info in metric_list.items():
                 if justGraphs == False:
-
-
                     metric = metric_info["instance"]
                     name = "{} - {}".format(var.name, metric_name)
                     print(name)
@@ -179,12 +139,9 @@ class Grapher():
 
                     #fdr = data_folder / var.name 
                     if  os.path.exists(data_folder / var.name / metric_name) == False:
-
-                    
                         ind_var_output = self.get_single_var_data(metric, var, reduction=reduction)
                         if save_data:
                             folder = data_folder / var.name / metric_name    
-                    
 
                             for k, v in ind_var_output.items():
                                 f = folder / k
@@ -226,9 +183,6 @@ class Grapher():
                         folder.mkdir(parents=True, exist_ok=True)
                         fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")   
                         plt.close(fig)
-
-
-
 
     
     def generate_smooth_line_chart(self, data, metric_info, var, ignore):
@@ -277,7 +231,6 @@ class Grapher():
         return fig
 
     
-
     def generate_bar_chart(self, data, metric_info, var, bar_reduction):
         """
         bar_reduction is one of "mean", "sum", "last", "lastN"
@@ -567,90 +520,6 @@ def regressionGrad(X, y):
 
 if __name__ == "__main__":
     grapher = Grapher()
-    metric_list = {                  
-                    "sep_min": {
-                        "desc": "Minimum separation between drones",
-                        "unit": "m",
-                        "axis_label": "Minimum Drone Separation",
-                        "instance": Separation()
-                        },
-                   "sep_max": {
-                        "desc": "Maximum separation between drones",
-                        "unit": "m",
-                        "axis_label": "Maximum Drone Separation",
-                        "instance": Separation(reduction="max")
-                        },
-                   "sep_mean": {
-                        "desc": "Mean separation between drones",
-                        "unit": "m",
-                        "axis_label": "Mean Drone Separation",
-                        "instance": Separation(reduction="mean")
-                       },
-                   "col_num": {
-                        "desc": "Total number of collisions",
-                         "unit": "",
-                        "axis_label": "Number of Collisions",
-                        "instance": CollisionsNumber()
-                       },
-                    #"density": {
-                    #     "desc": "Density of the swarm",
-                    #     "unit": "m$^2$",
-                    #     "axis_label": "Swarm Density",
-                    #     "instance": Density()
-                    #    },
-                    "orient": {
-                        "desc": "S.D of drone orientations",
-                        "unit": "$^\circ$",
-                        "axis_label": "Drone Orientation S.D",
-                        "instance": OrientationMetric()
-                        },
-                    "pos_err": {
-                        "desc": "Calculated position error",
-                        "unit": "m",
-                        "axis_label": "Calculated Position Error",
-                        "instance": PerceivedPosMetric()
-                        },
-                    "speed": {
-                       "desc": "Speed of drones",
-                        "unit": "m/s",
-                        "axis_label": "Speed",
-                       "instance": Speed()
-                        },
-                   ##  "dfc": {
-                   #      "desc": "Distance from flock center",
-                   #      "unit": "m",
-                   #      "axis_label": "Distance from flock center",
-                   #      "instance": distfromRT()
-                   #     },     
-                    #"TPtraj": {
-                    #     "desc": "Difference from optimal trajectory",
-                    #     "unit": "$^\circ$",
-                    #     "axis_label": "Angle From Optimal Trajectory",
-                    #     "instance": TPTrajectoryMetric()
-                    #    },
-                    "distfromRT": {
-                         "desc": "Distance from Racetrack",
-                         "unit": "m",
-                         "axis_label": "Distance from Racetrack",
-                         "instance": distfromRT()
-                        },
-                    #"distfromCircle": {
-                    #     "desc": "Distance from Circle",
-                    #     "unit": "m",
-                    #     "axis_label": "Distance from Circle",
-                    #     "instance": circleCentreDist()
-                    #    },
-                    #"FHtraj" : {
-                    #    "desc": "Difference from optimal trajectory",
-                    #    "unit": "$^\circ$",
-                    #    "axis_label": "Angle from Optimal trajectory",
-                    #    "instance": FHTrajectoryMetric()
-                    #}
-
-                    
-    }
-
-
 
     #print("start")
     # Path to the data that is 

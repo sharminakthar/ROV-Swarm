@@ -1,7 +1,8 @@
 import itertools
 import time
+from pathlib import Path
+
 from simulation.objectives import DroneObjective
-import pandas as pd
 from flock_settings import FlockSettings, Setting
 from headless.parser import Parser
 from simulator import Simulator
@@ -9,25 +10,9 @@ from util.csv_helpers import *
 
 
 class MultiRunner():
-    def __init__(self, variable_groups, steps=10000, samples=5):
-        # Stores the range of values to be used when testing
-        self.variables = {
-            "FLOCK_SIZE": [i +2 for i in range(10)],
-            "BANDWIDTH": [round((i*2)/10 + 0.2,2) for i in range(10)],
-            "PACKET_LOSS": [10 * i  for i in range(10)],    
-            "SPEED_ERROR": [round(5 * i,2) for i in range(10)],
-            "HEADING_ERROR": [round(5 * i,2)  for i in range(10)],
-            "RANGE_ERROR": [round(5 * i,2) for i in range(10)],
-            "BEARING_ERROR": [round(6 * i,2) for i in range(10)],
-            "ACCELERATION_ERROR": [round( i,2) for i in range(10)],
-            "SPEED_CALIBRATION_ERROR": [round(i,2) for i in range(10)],
-            "HEADING_CALIBRATION_ERROR": [round(i*10,2) + 20 for i in range(5)],
-            "RANGE_CALIBRATION_ERROR": [round(i*10,2) + 150 for i in range(4)],
-            "BEARING_CALIBRATION_ERROR": [round( i*8,2) for i in range(10)],
-            "ACCELERATION_CALIBRATION_ERROR": [round(i,2) + 48 for i in range(1)]
-            }
-
-        
+    def __init__(self, variable_groups, variable_values, steps=10000, samples=5):
+        # Dictionary of variables to their range of values
+        self.variables = variable_values
 
         #Steps taken per simulation
         self.steps = steps
@@ -37,7 +22,7 @@ class MultiRunner():
         # Variables groups, where grouped variables will vary together to reduce the number of simulations needed
         self.active_variable_groups = variable_groups
 
-    def run(self):
+    def run(self, output_file, drone_objective):
         # Maps each variable group to their values
         values = list(map(self.group_to_vals, self.active_variable_groups))
         # Zips grouped values together
@@ -45,38 +30,38 @@ class MultiRunner():
         # A list of values representing each scenario to test
         scenarios = map(self.flatten, itertools.product(*grouped_values))
 
-        var_names = self.flatten(self.active_variable_groups)
+        vars = self.flatten(self.active_variable_groups)
+        var_names = [v.name for v in vars]
+        
         for scenario in scenarios:
-
-
             print("Scenario " + str(list(zip(var_names, scenario))))
             settings = FlockSettings()
-            settings.set(Setting["DRONE_OBJECTIVE"], DroneObjective.RACETRACK)
+            settings.set(Setting["DRONE_OBJECTIVE"], drone_objective)
 
-            for var, val in zip(var_names, scenario):
-                settings.set(Setting[var], val)
-           #     settings.set(Setting["BANDWIDTH"], 2.2 - (val/100) * 2 )
+            for var, val in zip(vars, scenario):
+                settings.set(var, val)
             
             # Make directory name for a set of simulation parameters
-            directory = "out\\newrt" +"\\" + "-".join(var_names) + "\\" + "\\".join(str(s) for s in scenario)
-            #directory = "out\\FIXED_HEADING" 
-            if not os.path.exists(directory):
-                os.makedirs(directory)
+            directory = Path("out")
+            directory = directory / output_file / "-".join(var_names)
+            for s in scenario:
+                directory = directory / str(s)
+
+            directory.mkdir(parents=True, exist_ok=True)
             output_metadata(settings, directory)
 
             for i in range(self.samples):
                 seed = int(time.time())
                 settings.set(Setting["SEED"], seed)
 
-                new_dir = directory + "\\" + str(i)
+                new_dir = directory / str(i)
             
-                if not os.path.exists(new_dir):
-                    os.makedirs(new_dir)
+                new_dir.mkdir(parents=True, exist_ok=True)
 
                 self.execute_single(new_dir, settings)  
                 
                 # Output seed to directory of each file
-                with open(new_dir + "\\seed.txt", "w") as f:
+                with open(new_dir / "seed.txt", "w") as f:
                     f.write(str(seed))
         
     def execute_single(self, directory, settings):   
@@ -98,6 +83,22 @@ class MultiRunner():
         return [self.variables[var] for var in group]
 
 if __name__ == "__main__":
+    # Stores the range of values to be used when testing
+    variables = {
+        Setting.FLOCK_SIZE: [i +2 for i in range(10)],
+        Setting.BANDWIDTH: [round((i*2)/10 + 0.2,2) for i in range(10)],
+        Setting.PACKET_LOSS: [10 * i  for i in range(10)],    
+        Setting.SPEED_ERROR: [round(5 * i,2) for i in range(10)],
+        Setting.HEADING_ERROR: [round(5 * i,2)  for i in range(10)],
+        Setting.RANGE_ERROR: [round(5 * i,2) for i in range(10)],
+        Setting.BEARING_ERROR: [round(6 * i,2) for i in range(10)],
+        Setting.ACCELERATION_ERROR: [round( i,2) for i in range(10)],
+        Setting.SPEED_CALIBRATION_ERROR: [round(i,2) for i in range(10)],
+        Setting.HEADING_CALIBRATION_ERROR: [round(i*10,2) + 20 for i in range(5)],
+        Setting.RANGE_CALIBRATION_ERROR: [round(i*10,2) + 150 for i in range(4)],
+        Setting.BEARING_CALIBRATION_ERROR: [round( i*8,2) for i in range(10)],
+        Setting.ACCELERATION_CALIBRATION_ERROR: [round(i,2) + 48 for i in range(1)]
+        }
     # for var in ["FLOCK_SIZE", "BANDWIDTH", "PACKET_LOSS", "SPEED_ERROR", "HEADING_ERROR", 
     #             "RANGE_ERROR", "BEARING_ERROR", "ACCELERATION_ERROR", "SPEED_CALIBRATION_ERROR",
     #             "HEADING_CALIBRATION_ERROR", "RANGE_CALIBRATION_ERROR", "BEARING_CALIBRATION_ERROR",
@@ -110,8 +111,13 @@ if __name__ == "__main__":
     #    runner = MultiRunner([[var]])
     #    runner.run()
     
-    runner = MultiRunner([["RANGE_CALIBRATION_ERROR"]])
-    runner.run()
+    # Will run just range calibration error
+    runner = MultiRunner([[Setting.RANGE_CALIBRATION_ERROR]], variables)
+    runner.run("newrt", DroneObjective.RACETRACK)
+    # will run all combinations of flock size and packet loss
     #runner = MultiRunner([["FLOCK_SIZE"],["PACKET_LOSS"]])
     #runner.run()
+    # Will join together flock size and packet loss, and cross with range calibration error
+    # runner = MultiRunner([["FLOCK_SIZE", "PACKET_LOSS"], ["RANGE_CALIBRATION_ERROR"]])
+    # runner.run()
 
