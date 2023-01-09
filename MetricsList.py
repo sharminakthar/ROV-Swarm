@@ -8,7 +8,7 @@ from metrics.PerceivedPosMetric import PerceivedPosMetric
 from metrics.speed import Speed
 from metrics.Fixed_Heading_traj import FHTrajectoryMetric
 #from metrics.trajectories import TrajectoryMetric
-from metrics.Helper_Functions import moving_average
+
 from metrics.trajectories import TPTrajectoryMetric
 #from metrics.trajectories import FHTrajectoryMetric
 from metrics.DistfromRT import distfromRT
@@ -36,48 +36,48 @@ metric_list = {
                         "axis_label": "Minimum Drone Separation",
                         "instance": Separation()
                         },
-                   "sep_max": {
-                        "desc": "Maximum separation between drones",
-                        "unit": "m",
-                        "axis_label": "Maximum Drone Separation",
-                        "instance": Separation(reduction="max")
-                        },
-                   "sep_mean": {
-                        "desc": "Mean separation between drones",
-                        "unit": "m",
-                        "axis_label": "Mean Drone Separation",
-                        "instance": Separation(reduction="mean")
-                       },
-                   "col_num": {
-                        "desc": "Total number of collisions",
-                         "unit": "",
-                        "axis_label": "Number of Collisions",
-                        "instance": CollisionsNumber()
-                       },
+                #    "sep_max": {
+                #         "desc": "Maximum separation between drones",
+                #         "unit": "m",
+                #         "axis_label": "Maximum Drone Separation",
+                #         "instance": Separation(reduction="max")
+                #         },
+                #    "sep_mean": {
+                #         "desc": "Mean separation between drones",
+                #         "unit": "m",
+                #         "axis_label": "Mean Drone Separation",
+                #         "instance": Separation(reduction="mean")
+                #        },
+                #    "col_num": {
+                #         "desc": "Total number of collisions",
+                #          "unit": "",
+                #         "axis_label": "Number of Collisions",
+                #         "instance": CollisionsNumber()
+                #        },
                     #"density": {
                     #     "desc": "Density of the swarm",
                     #     "unit": "m$^2$",
                     #     "axis_label": "Swarm Density",
                     #     "instance": Density()
                     #    },
-                    "orient": {
-                        "desc": "S.D of drone orientations",
-                        "unit": "$^\circ$",
-                        "axis_label": "Drone Orientation S.D",
-                        "instance": OrientationMetric()
-                        },
-                    "pos_err": {
-                        "desc": "Calculated position error",
-                        "unit": "m",
-                        "axis_label": "Calculated Position Error",
-                        "instance": PerceivedPosMetric()
-                        },
-                    "speed": {
-                       "desc": "Speed of drones",
-                        "unit": "m/s",
-                        "axis_label": "Speed",
-                       "instance": Speed()
-                        },
+                    # "orient": {
+                    #     "desc": "S.D of drone orientations",
+                    #     "unit": "$^\circ$",
+                    #     "axis_label": "Drone Orientation S.D",
+                    #     "instance": OrientationMetric()
+                    #     },
+                    # "pos_err": {
+                    #     "desc": "Calculated position error",
+                    #     "unit": "m",
+                    #     "axis_label": "Calculated Position Error",
+                    #     "instance": PerceivedPosMetric()
+                    #     },
+                    # "speed": {
+                    #    "desc": "Speed of drones",
+                    #     "unit": "m/s",
+                    #     "axis_label": "Speed",
+                    #    "instance": Speed()
+                    #     },
                    ##  "dfc": {
                    #      "desc": "Distance from flock center",
                    #      "unit": "m",
@@ -90,12 +90,12 @@ metric_list = {
                     #     "axis_label": "Angle From Optimal Trajectory",
                     #     "instance": TPTrajectoryMetric()
                     #    },
-                    "distfromRT": {
-                         "desc": "Distance from Racetrack",
-                         "unit": "m",
-                         "axis_label": "Distance from Racetrack",
-                         "instance": distfromRT()
-                        },
+                    # "distfromRT": {
+                    #      "desc": "Distance from Racetrack",
+                    #      "unit": "m",
+                    #      "axis_label": "Distance from Racetrack",
+                    #      "instance": distfromRT()
+                    #     },
                     #"distfromCircle": {
                     #     "desc": "Distance from Circle",
                     #     "unit": "m",
@@ -108,6 +108,4 @@ metric_list = {
                     #    "axis_label": "Angle from Optimal trajectory",
                     #    "instance": FHTrajectoryMetric()
                     #}
-
-                    
     }

@@ -2,7 +2,7 @@ from tokenize import group
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from BaseMetric import BaseMetric
+from .BaseMetric import BaseMetric
 from pandas import DataFrame
 from pandas import *
 from matplotlib import pyplot as plt
