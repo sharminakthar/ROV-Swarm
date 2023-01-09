@@ -92,146 +92,51 @@ class Grapher():
             if specific_param is not None and not var_order.name in specific_param:
                 continue
 
-            # Find all folders two up from the raw data - i.e. the list of 1d variables to run
-            final_var_dirs = []
-            for dirpath, dirnames, filenames in os.walk(directory):
-                if "Metric_Data" in dirpath or "Graphs" in dirpath or "raw_data_log.csv" in filenames:
-                    continue
-                if "metadata.csv" in filenames:
-                    parent = os.path.dirname(dirpath)
-                    if parent not in final_var_dirs: 
-                        final_var_dirs.append(parent)
-            
-            for d in final_var_dirs:
-                p = Path(d)
-                for metric_name, metric_info in metric_list.items():
-                    name = "{} - {}".format(p.name, metric_name)
-                    print(name)
-                    metric = metric_info["instance"]
-                    folder = data_folder / d[len(str(directory))+1:]
-                    ind_var_output = self.get_single_var_data(metric, p, reduction=reduction)
-                     
-                    # k is the value of the independent variable
-                    # v is the metric data at that variable
-                    for k, v in ind_var_output.items():
-                        f = folder / k / metric_name
-                        f.mkdir(parents=True, exist_ok=True)
-                        v.to_csv(path_or_buf=(f / "metric_data.csv"), index=False)
-    
-    def graph_data(self, directory: Path, metric_list: dict, graph_func, save_folder: str, **kwargs):
-        pass
-
-    def get_all_var_data(self, metric_list: dict, directory: Path, reduction: str="mean", graph_func=None,
-                         save_data: bool=True, specific_param: list=None, load_data: bool = False, save_folder: str=None, **kwargs):
-        """
-        Takes in a list of metrics and a directory of multilpe variables changing and produces the metric data 
-        of the simulations in that directory. There will be data for a set of graphs for each variable for each metric.
-
-        Parameters
-            metric_list: dict
-                A dictionary linking the name of a metric to metric information.
-            directory: Path
-                The directory of the data being read.
-            reduction: str
-                The method used to reduce the data of the runs into one list of values. Should either be "mean"
-                or "runN" where N is the number of the run to extract.
-            graph_func:
-                The function used to produce a graph from the data
-            save_data: bool
-                A flag that will denote whether or not to save the data from the metrics.
-            specific_param: list
-                A list of specific parameters to run (e.g. ["BANDWIDTH", "PACKET_LOSS"]) if only some of the parameters
-                are needed to be run. If None, then all of the parameters will be run
-            load_data: bool
-                If true, previously calculated metric data will be loaded. Otherwise, the metric shall be recalculated.
-            save_folder:
-                If you would rather save the graph and metric data in subfolders so that they are easily accessible, 
-                name that folder here. If None, will save directly to Graphs/var/metric/
-            **kwargs:
-                Keyword arguments for the graph function
-        """
-        # Make metric data and graphs folders to hold the generated data
-        data_folder = directory / "Metric_Data"
-        fig_folder = directory / "Graphs"
-        # if save_data:
-        #     data_folder.mkdir(parents=True, exist_ok=True)
-        # if graph_func:
-        #     fig_folder.mkdir(parents=True, exist_ok=True)
+        # Find all folders two up from the raw data - i.e. the list of 1d variables to run
+        final_var_dirs = []
+        for dirpath, dirnames, filenames in os.walk(directory):
+            if "Metric_Data" in dirpath or "Graphs" in dirpath or "raw_data_log.csv" in filenames:
+                continue
+            if "metadata.csv" in filenames:
+                parent = os.path.dirname(dirpath)
+                if parent not in final_var_dirs: 
+                    final_var_dirs.append(parent)
         
-        # See which variables are going to be read
-        for var_order in directory.iterdir():
-            # Skip directories if they are graphs, metric data, or they are not a param that was specified
-            if var_order.name in ["Graphs", "Metric_Data"]:
-                continue
-            if specific_param is not None and not var_order.name in specific_param:
-                continue
-
-            vars = var_order.name.split("-")
-            final_var_dirs = []
-            for dirpath, dirnames, filenames in os.walk(directory):
-                if "Metric_Data" in dirpath or "Graphs" in dirpath or "raw_data_log.csv" in filenames:
-                    continue
-                if "metadata.csv" in filenames:
-                    parent = os.path.dirname(dirpath)
-                    if parent not in final_var_dirs: 
-                        final_var_dirs.append(parent)
-                        data_structure = data_folder / parent[len(str(directory))+1:]
-                        data_structure.mkdir(parents=True, exist_ok=True)
-                        graph_structure = fig_folder / parent[len(str(directory))+1:]
-                        graph_structure.mkdir(parents=True, exist_ok=True)
-            
-            for d in final_var_dirs:
-                p = Path(d)
-                for metric_name, metric_info in metric_list.items():
-                    name = "{} - {}".format(p.name, metric_name)
-                    metric = metric_info["instance"]
-                    ind_var_output = self.get_single_var_data(metric, p, reduction=reduction)
-                    if save_data:
-                        folder = data_folder / d[len(str(directory))+1:] / metric_name    
-                        for k, v in ind_var_output.items():
-                            f = folder / k
-                            f.mkdir(parents=True, exist_ok=True)
-                            v.to_csv(path_or_buf=(f / "metric_data.csv"), index=False)
-
-        for var in directory.iterdir():
-            if var.name in ["Graphs", "Metric_Data"]:
-                continue
-
-            if specific_param is not None and not var.name in specific_param:
-                print(var.name)
-                continue
-          
+        for d in final_var_dirs:
+            p = Path(d)
             for metric_name, metric_info in metric_list.items():
-                name = "{} - {}".format(var.name, metric_name)
+                name = "{} - {}".format(p.name, metric_name)
                 print(name)
+                metric = metric_info["instance"]
+                folder = data_folder / d[len(str(directory))+1:] / metric_name
+                ind_var_output = self.get_single_var_data(metric, p, reduction=reduction)
+                    
+                # k is the value of the independent variable
+                # v is the metric data at that variable
+                for k, v in ind_var_output.items():
+                    f = folder / k 
+                    f.mkdir(parents=True, exist_ok=True)
+                    v.to_csv(path_or_buf=(f / "metric_data.csv"), index=False)
 
+    def graph_single_var(self, data_path: Path, metric_list: dict, graph_func, save_folder: str, **kwargs):
+        """
+        Will graph all metrics on a single variable
+        """
+        for var in data_path.iterdir():
+            for metric_name, metric_info in metric_list.items():
                 ind_var_output = {}
-                if load_data:
-                    folder = data_folder / var.name / metric_name 
-                    for k in folder.iterdir():
-                        f =  k
-                        df = pd.read_csv(f/ "metric_data.csv")
-                        ind_var_output[k.name] = df
-                else:
-                    metric = metric_info["instance"]
-                    ind_var_output = self.get_single_var_data(metric, var, reduction=reduction)
-
-                    if save_data:
-                        folder = data_folder / var.name / metric_name    
-
-                        for k, v in ind_var_output.items():
-                            f = folder / k
-                            f.mkdir(parents=True, exist_ok=True)
-                            v.to_csv(path_or_buf=(f / "metric_data.csv"), index=False)
-
-                if graph_func is not None:
-                    fig = graph_func(self, ind_var_output, metric_info, var.name, **kwargs)
-                    folder = fig_folder / var.name / metric_name
-                    if save_folder is not None:
-                        folder = folder / save_folder
-                    folder.mkdir(parents=True, exist_ok=True)
-                    fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
-                    plt.close(fig)
+                folder = var / metric_name 
+                if not folder.exists():
+                    continue
+                for k in folder.iterdir():
+                    df = pd.read_csv(k / "metric_data.csv")
+                    ind_var_output[k.name] = df
+                
+                fig = graph_func(ind_var_output, metric_info, var.name, **kwargs)
+                folder = data_path.parent / save_folder / var.name / metric_name
+                folder.mkdir(parents=True, exist_ok=True)
+                fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
+                plt.close(fig)
 
     
     def generate_smooth_line_chart(self, data, metric_info, var, ignore):
@@ -257,7 +162,7 @@ class Grapher():
         return fig
 
 
-    def generate_line_chart(self, data, metric_info, var, ignore):
+    def generate_line_chart(self, data, metric_info, var):
         var_name = " ".join([w.capitalize() for w in var.split("_")])
 
         fig = plt.figure()
@@ -280,7 +185,7 @@ class Grapher():
         return fig
 
     
-    def generate_bar_chart(self, data, metric_info, var, bar_reduction):
+    def generate_bar_chart(self, data, metric_info, var, bar_reduction="mean"):
         """
         bar_reduction is one of "mean", "sum", "last", "lastN"
         "lastN" takes the mean of the last N timesteps, where N can be any number 0 < N < 10000
@@ -351,7 +256,7 @@ def read_multi_data( p: Path, metric_name="cdm", reduction="mean"):
     return axis1, axis2, data_arr  
 
 
-def multivar_grapher( metric_list: dict, directory: Path, reduction: str="mean", graph_func1=None, graph_func2=None, graph_func3 = None):
+def multivar_grapher( metric_list: dict, directory: Path, reduction: str="mean", graph_func1=None, graph_func2=None, graph_func3=None):
         fig_folder = directory / "Graphs"  
         if graph_func1:
             fig_folder.mkdir(parents=True, exist_ok=True)
@@ -561,26 +466,14 @@ def regressionGrad(X, y):
         arr.append(1 - predicted)
     return arr
 
-def get_array_shape(path, shape):
-    # Get a list of all the subdirectories in the current directory
-    subdirs = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
-    if len(subdirs) == 0:
-        # If there are no subdirectories, this is a terminal node and we can return the shape
-        return shape
-    else:
-        # Otherwise, add another dimension to the shape and recursively call the function for each subdirectory
-        shape.append(len(subdirs))
-        for d in subdirs:
-            shape = get_array_shape(os.path.join(path, d), shape)
-        return shape
-
 
 if __name__ == "__main__":
     grapher = Grapher()
-    p = Path("out/FOLLOW_CIRCLE_MULTI")
-    grapher.generate_data(metric_list, p, overwrite=False)
+    p = Path("out/FIXED_HEADING_ULTRA_EXTENDED")
+    #grapher.generate_data(metric_list, p)
+    grapher.graph_single_var(Path("out/FIXED_HEADING_ULTRA_EXTENDED/Metric_Data"), metric_list, grapher.generate_line_chart,
+                             "Graphs")
     quit()
-    grapher.get_all_var_data(metric_list, p)
 
     #print("start")
     # Path to the data that is 

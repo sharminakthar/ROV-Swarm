@@ -36,6 +36,13 @@ metric_list = {
                         "axis_label": "Minimum Drone Separation",
                         "instance": Separation()
                         },
+                        "cdm": {
+                        "desc": "Distance between drones and centre of flock",
+                        "unit": "m",
+                        "axis_label": "Average Distance From the Centre",
+                        "instance": CentreDistMetric(),
+                        },
+
                 #    "sep_max": {
                 #         "desc": "Maximum separation between drones",
                 #         "unit": "m",
