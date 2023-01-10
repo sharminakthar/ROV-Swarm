@@ -135,7 +135,13 @@ class DAG:
             "desc": "Difference from optimal trajectory",
             "unit": "$^\circ$",
             "axis_label": "Angle From Optimal Trajectory",
-            }
+            },
+        "distfromRT":{
+            "desc": "Distance from the racetrack",
+            "unit": "m",
+            "axis_label": "Distance",
+        }
+        
     }
     def __init__(self, mission , parameter, M1 ,M2, run):
         self.Mission = mission
@@ -267,12 +273,31 @@ class DAG:
 
         plt.show()
 
+def m():
+    with open("Sensor_Errors/RACETRACK/BW/DRT_BW.txt", "rb") as myFile:
+        data = pickle.load(myFile)
 
+    y1 = np.zeros(10000)
+    y2 = np.zeros(10000)
+
+    for i in range(10000):
+        y1[i] = data['0.5']['0'][i]
+
+    for i in range(10000):
+        y2[i] = data['1.0']['0'][i]
+
+    plt.plot(range(10000),y1, color = 'green', label = '0.5 B/s')
+    plt.plot(range(10000),y2 ,color = 'blue', label = '1.0 B/s')
+    plt.xlabel('Timestep (s)')
+    plt.ylabel('Distance from the Racetrack (m)')
+    plt.title('Distance between swarm and racetrack with different bandwidths')
+    plt.legend()
+    plt.show()
 
 
 if __name__ == "__main__":
 
-    b = DAG("RACETRACK","BANDWIDTH","sep_min","speed","0")
-    b.plotSingleError('0.5')
+    b = DAG("RACETRACK","HEADING_CALIBRATION_ERROR","sep_mean","distfromRT","0")
+    b.plotSingleError('30')
 
     print("done")
