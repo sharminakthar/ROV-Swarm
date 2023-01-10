@@ -1,11 +1,9 @@
 from pathlib import Path
-from BaseMetric import BaseMetric
+from .BaseMetric import BaseMetric
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
-import pickle
 import math
-import csv
 
 class distfromRT(BaseMetric):
 
@@ -16,17 +14,16 @@ class distfromRT(BaseMetric):
         x = data.shape[0]
         data = data.sum(axis = 0)
         swarmcentre = data/x
-        if swarmcentre["X Position"]<2000:
-            distance = abs(1000 - math.hypot(2000 - swarmcentre["X Position"], 3000 - swarmcentre["Y Position"]))
+        if swarmcentre["X Position"]<1500:
+            distance = abs(1000 - math.hypot(1500 - swarmcentre["X Position"], 2500 - swarmcentre["Y Position"]))
         elif swarmcentre["X Position"]>3500:
-            distance = abs(100 - math.hypot(3500 - swarmcentre["X Position"], 3000 - swarmcentre["Y Position"]))
-        elif swarmcentre["Y Position"]<3000:
-            distance = abs(2000 - swarmcentre["Y Position"])
-        elif swarmcentre["Y Position"]>3000:
-            distance = abs(4000 - swarmcentre["Y Position"])
+            distance = abs(1000 - math.hypot(3500 - swarmcentre["X Position"], 2500 - swarmcentre["Y Position"]))
+        elif swarmcentre["Y Position"]<2500:
+            distance = abs(1500 - swarmcentre["Y Position"])
+        elif swarmcentre["Y Position"]>2500:
+            distance = abs(3500 - swarmcentre["Y Position"])
         return(distance)
 
-    
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
         df = data[["Timestep","X Position", "Y Position" ]]
         df= df.groupby('Timestep').apply(self.myfunction).reset_index()

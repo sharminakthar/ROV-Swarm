@@ -1,11 +1,11 @@
 from pathlib import Path
-from BaseMetric import BaseMetric
+from .BaseMetric import BaseMetric
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import math
 
-class circlecentedist(BaseMetric):
+class circleCentreDist(BaseMetric):
 
     def __init__(self):
         super().__init__()
@@ -14,7 +14,7 @@ class circlecentedist(BaseMetric):
         x = data.shape[0]
         data = data.sum(axis = 0)
         data = data/x
-        distance = math.hypot(2500 - data["X Position"], 2500 - data["Y Position"])
+        distance = 1000 - np.abs(math.hypot(2500 - data["X Position"], 2500 - data["Y Position"]))
         return(distance)
 
     
@@ -25,7 +25,7 @@ class circlecentedist(BaseMetric):
         return df
 
 if __name__ == "__main__":
-    metric = circlecentedist()
+    metric = circleCentreDist()
 
     # Replace path name with absolute path if not running from inside the metrics folder
     path_name = "../out/FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA/FLOCK_SIZE"

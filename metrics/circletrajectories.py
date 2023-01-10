@@ -1,8 +1,8 @@
 import pandas as pd
 from pathlib import Path
-from .BaseMetric import BaseMetric
-from .orientations import OrientationMetric
-from .Helper_Functions import getOrientations
+from BaseMetric import BaseMetric
+from orientations import OrientationMetric
+from Helper_Functions import HelperFunctions
 from matplotlib import pyplot as plt
 import numpy as np
 import math
