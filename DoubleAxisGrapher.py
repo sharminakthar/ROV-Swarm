@@ -8,82 +8,6 @@ import pickle
 import csv
 import os 
 
-
-class DAGraph:
-  def __init__(self, mission , parameter, M1 ,M2, run):
-    self.Mission = mission
-    self.parameter = parameter
-    self.data1 = self.openfile(M1)
-    self.data2 = self.openfile(M2)
-    self.name1 = self.getname(M1)
-
-    self.run = run
-    self.x_axis = self.GettingXA()
-    self.y1 = self.getYaxis(M1)
-    self.y2 = self.getYaxis(M2)
-
-  def openfile(self, metric):
-    with open("Sensor_Errors/"+self.Mission+"/"+self.parameter+"/"+metric+"_"+self.parameter+".txt", "rb") as myFile:
-        data = pickle.load(myFile)
-    #data = []
-    return data
-
-  def getname(self, metric):
-
-    print('xxx')
-
-
-  def GettingXA(self):
-    z = list(self.data2.keys())
-    z.sort(key=float)
-
-    X_axis = np.zeros(shape = len(self.data2.keys()))
-    for i in range(len(self.data2.keys())):
-         X_axis[i] = float(z[i])
-
-    return X_axis
-
-  def getYaxis(self, metric):
-    n = 1000
-    x = np.zeros(shape=(len(self.x_axis),n))
-    T = np.zeros(shape=(len(self.x_axis),9999))
-    YX = np.zeros(shape = len(self.x_axis))
-
-    y = list(self.data1.keys())
-    y.sort(key=float)
-
-    if metric == "DRT" or metric == "DEN" or metric == "CDM":
-        for i in range(len(self.x_axis)):
-            for j in range(n):
-                x[i][j] = self.data1[y[i]][self.run][j+(9999-n)]
-
-        for i in range(len(self.x_axis)):
-            YX[i] = np.mean(x[i])
-    elif metric == "CN":
-        for i in range(len(self.x_axis)):
-            for j in range(9999):
-                T[i][j] = self.data2[y[i]][self.run][j]
-
-        for i in range(len(self.x_axis)):
-            YX[i] = np.sum(T[i])
-    return YX
-
-  def MakeGraph(self):
-    fig, ax1 = plt.subplots()
-    ax2 = ax1.twinx()
-    lns1 = ax1.plot(self.x_axis, self.y1 , c = 'g', label = 'Distance from Racetrack')
-    lns2 = ax2.plot(self.x_axis, self.y2, c = 'b', label ='Collision Number' )
-
-    lns = lns1+lns2
-    labs = [l.get_label() for l in lns]
-    ax1.legend(lns, labs, loc=0)
-
-    ax1.set_xlabel('Bandwidth')
-    ax1.set_ylabel('Distance from Racetrack / m')
-    ax2.set_ylabel('Total number of Collisions')
-    plt.title('Effect of varying bandwidth on the distance \nfrom the racetrack and the total number of collisions')
-    plt.show()
-
 class DAG:
     metric_list = {
         'cdm':{
@@ -186,22 +110,28 @@ class DAG:
 
         y = self.x_axis
 
-        if metric1 == "cdm" or metric1 == "speed" or metric1 == "den":
-            for i in range(len(self.x_axis)):
-                for j in range(n):
-                    x[i][j] = self.data1[str(y[i])]['0'][j+(9999-n)]
-
-            for i in range(len(self.x_axis)):
-                YX1[i] = np.mean(x[i])
-        elif metric1 == "CN":
+        if metric1 == "col_num":
             for i in range(len(self.x_axis)):
                 for j in range(9999):
                     T[i][j] = self.data2[str(y[i])]['0'][j]
 
             for i in range(len(self.x_axis)):
                 YX1[i] = np.sum(T[i])
+        else:
+            for i in range(len(self.x_axis)):
+                for j in range(n):
+                    x[i][j] = self.data1[str(y[i])]['0'][j+(9999-n)]
 
-        if metric2 == "cdm" or metric2 == "speed" or metric2 == "den":
+            for i in range(len(self.x_axis)):
+                YX1[i] = np.mean(x[i])
+
+        if metric2 == "col_num":
+            for i in range(len(self.x_axis)):
+                for j in range(9999):
+                    T[i][j] = self.data2[str(y[i])]['0'][j]
+            for i in range(len(self.x_axis)):
+                YX2[i] = np.sum(T[i])
+        else:
             for i in range(len(self.x_axis)):
                 for j in range(n):
                     x[i][j] = self.data2[str(y[i])]['0'][j+(9999-n)]
@@ -209,13 +139,6 @@ class DAG:
             for i in range(len(self.x_axis)):
                 YX2[i] = np.mean(x[i])
 
-        elif metric2 == "CN":
-            for i in range(len(self.x_axis)):
-                for j in range(9999):
-                    T[i][j] = self.data2[str(y[i])]['0'][j]
-
-            for i in range(len(self.x_axis)):
-                YX2[i] = np.sum(T[i])
 
         return YX1,YX2
 
@@ -273,31 +196,11 @@ class DAG:
 
         plt.show()
 
-def m():
-    with open("Sensor_Errors/RACETRACK/BW/DRT_BW.txt", "rb") as myFile:
-        data = pickle.load(myFile)
-
-    y1 = np.zeros(10000)
-    y2 = np.zeros(10000)
-
-    for i in range(10000):
-        y1[i] = data['0.5']['0'][i]
-
-    for i in range(10000):
-        y2[i] = data['1.0']['0'][i]
-
-    plt.plot(range(10000),y1, color = 'green', label = '0.5 B/s')
-    plt.plot(range(10000),y2 ,color = 'blue', label = '1.0 B/s')
-    plt.xlabel('Timestep (s)')
-    plt.ylabel('Distance from the Racetrack (m)')
-    plt.title('Distance between swarm and racetrack with different bandwidths')
-    plt.legend()
-    plt.show()
 
 
 if __name__ == "__main__":
 
-    b = DAG("RACETRACK","HEADING_CALIBRATION_ERROR","sep_mean","distfromRT","0")
-    b.plotSingleError('30')
+    b = DAG("RACETRACK","HEADING_CALIBRATION_ERROR","sep_mean","col_num","0")
+    b.MakeGraph()
 
     print("done")
