@@ -9,7 +9,7 @@ import seaborn as sb
 from scipy.stats import spearmanr
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-#from sklearn import linear_model
+from sklearn import linear_model
 
 from MetricsList import units_list, metric_list
 from metrics.BaseMetric import BaseMetric
@@ -37,7 +37,6 @@ class Grapher():
         """
         results = {}
         dirs = filter(lambda x: x.is_dir(), directory.iterdir())
-        reduction = "mean"
         for i, run in enumerate(dirs):
             run = run / "raw_data_log.csv"
             data = pd.read_csv(run)
@@ -138,8 +137,32 @@ class Grapher():
                 fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
                 plt.close(fig)
 
+    def graph_double_var(self, data_path: Path, metric_list: dict, graph_func, save_folder: str, **kwargs):
+        """
+        Will graph all metrics on two variables that are co-varying
+        """
+        axis1 = [n.name for n in data_path.iterdir()]
+        axis2 = [n.name for n in next(data_path.iterdir()).iterdir()]
+
+        for i,var1 in enumerate(data_path.iterdir()):
+            for j,var2 in enumerate(var1.iterdir()):
+                for metric_name, metric_info in metric_list.items():
+                    ind_var_output = {}
+                    folder = var / metric_name 
+                    if not folder.exists():
+                        continue
+                    for k in folder.iterdir():
+                        df = pd.read_csv(k / "metric_data.csv")
+                        ind_var_output[k.name] = df
+                    
+                    fig = graph_func(ind_var_output, metric_info, var.name, **kwargs)
+                    folder = data_path.parent / save_folder / var.name / metric_name
+                    folder.mkdir(parents=True, exist_ok=True)
+                    fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
+                    plt.close(fig)
+
     
-    def generate_smooth_line_chart(self, data, metric_info, var, ignore):
+    def generate_smooth_line_chart(self, data, metric_info, var, adj_points=3):
 
         var_name = " ".join([w.capitalize() for w in var.split("_")])
         fig = plt.figure()
@@ -148,7 +171,7 @@ class Grapher():
         for k in labels:
 
             #second parameter is the number adjacent values each data point is averaged with
-            k2 = moving_average(data[k], 3)
+            k2 = moving_average(data[k], adj_points)
 
             d = k2
             ax.plot(d["Timestep"].to_numpy(), d.loc[:, d.columns != "Timestep"].to_numpy(), label=k)
@@ -469,8 +492,9 @@ def regressionGrad(X, y):
 
 if __name__ == "__main__":
     grapher = Grapher()
-    p = Path("out/FIXED_HEADING_ULTRA_EXTENDED")
-    #grapher.generate_data(metric_list, p)
+    p = Path("out/FOLLOW_CIRCLE_MULTI")
+    grapher.generate_data(metric_list, p)
+    quit()
     grapher.graph_single_var(Path("out/FIXED_HEADING_ULTRA_EXTENDED/Metric_Data"), metric_list, grapher.generate_line_chart,
                              "Graphs")
     quit()
