@@ -23,7 +23,13 @@ class DAG:
         self.x_axis = self.GettingXA(p, M1)
         self.y1 , self.y2 = self.getYaxis(M1,M2)
 
-        self.plotSingleError(p, error, M1, M2)
+        if error == None:
+            for val in (p /"Metric_Data" /  parameter / M1).iterdir():
+                print("VAL: ", val.name)
+                self.plotSingleError(p, val.name, M1, M2)
+        else:
+            for err in error:
+                self.plotSingleError(p, err, M1, M2)
         self.MakeGraph(p, M1, M2)
 
     def openfile(self, p : Path, metric):
@@ -31,14 +37,12 @@ class DAG:
         filenames = os.listdir(pathname)
         data = {}
 
-        print(filenames)
         for i in filenames:
                 d = pd.read_csv(pathname+'/'+i+'/metric_data.csv')
                 self.timesteps = np.size(d.iloc[:,0])
 
                 data[i] = d
         
-        print(self.timesteps)
         return data
 
     def GettingXA(self, p: Path, metric):
@@ -117,9 +121,8 @@ class DAG:
         ax1.set_ylabel('Distance from Racetrack / m')
         ax2.set_ylabel('Total number of Collisions')
         plt.title('Effect of varying '+str.title(self.parameter.replace("_", " " ))+' on ' + metric_list[M1]["desc"] + ' and ' + metric_list[M2]["desc"])
-        plt.show()
 
-        folder = p / "Graphs" / "DoubleAxis" / (M1 + "-" + M2)
+        folder = p / "Graphs" / self.parameter / "DoubleAxis" / (M1 + "-" + M2)
 
         folder.mkdir(parents=True, exist_ok=True)
 
@@ -143,14 +146,13 @@ class DAG:
         ax1.set_ylabel(metric_list[self.metric1]["axis_label"]+'/ '+metric_list[self.metric1]["unit"])
         ax2.set_ylabel(metric_list[self.metric2]["axis_label"]+'/ '+metric_list[self.metric2]["unit"])
         plt.title('')
-        plt.show()
         
-        folder = p / "Graphs" / "DoubleAxis" /  (M1 + "-" +  M2)
+        folder = p / "Graphs"/ self.parameter / "DoubleAxis"  / (M1 + "-" +  M2)
+
+
 
         folder.mkdir(parents=True, exist_ok=True)
 
-
-        fig.savefig(folder / "MultiVal.png", bbox_inches="tight")
 
         newdir = error + ".png"
         fig.savefig(folder / newdir, bbox_inches="tight")

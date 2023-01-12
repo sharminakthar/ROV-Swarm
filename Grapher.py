@@ -455,21 +455,25 @@ def generate_surface_plot(dataArray, ylabels, xlabels):
     return fig
 
 
-def getCorrelations(self, metric_list: dict, directory: Path, varList):
+def getCorrelations( metric_list: dict, directory: Path, varList = None):
     data_path = directory/"Metric_Data"
+
+
 
     numOfMetrics = len(metric_list)
     allCoeffs = np.empty([0,numOfMetrics])
     vars = []
 
     for var in data_path.iterdir():
-        if var.name in varList:
+        if varList != None and (var.name in varList) == False:
             continue
         vars.append(var.name)
         coeffs = []
         metrics = []
 
         for metric in var.iterdir():    
+            if (metric.name in metric_list) == False:
+                continue
             metrics.append(metric.name)
             vals = []
             labels = []
@@ -484,19 +488,24 @@ def getCorrelations(self, metric_list: dict, directory: Path, varList):
                 vals.append(meanVal)
                 labels.append(val.name)
                 
-            if metric.name=="col_num":
-                print("VAR: ", var.name)
-                print(determineCoefficient(labels, vals))
+            #print("VAR: ", var.name)
+            #print(determineCoefficient(labels, vals))
             coeffs.append(determineCoefficient(labels, vals))
 
-        print(var.name)
-        allCoeffs = np.vstack([allCoeffs, coeffs])
+        #print(var.name)
 
-    print(allCoeffs)
+        if len(coeffs) != len(metric_list):
+            print("MISSING METRIC")
+            print(coeffs)
+        else:
+            allCoeffs = np.vstack([allCoeffs, coeffs])
+
+    #print(allCoeffs)
     allCoeffs = zip(*allCoeffs)
-    print(allCoeffs)
 
     i = 0
+
+
 
     for metricCoeffs in allCoeffs:
         print("METRIC: ", metrics[i] )
@@ -508,7 +517,7 @@ def getCorrelations(self, metric_list: dict, directory: Path, varList):
             print(sortedVars[j], ": ", metricCoeffs[j])
             j-= 1
 
-
+        print("")
 def sort_list(list1, list2):
  
     zipped_pairs = zip(list2, list1)
@@ -544,15 +553,18 @@ def double_var_charts(p: Path, metric_list):
     double_var_regress(p / "Metric_Data", metric_list)
 
 def doubleAxisGraph(self, p, mission, var, metric1, metric2, run, errors ):
+    Grapher.generate_data(self, metric_list, p, vars)
+
     b = DAG(p, mission, var, metric1, metric2, run, errors)
 
 def heatmaps(self, p, mission, var, run, errors):
+
     GetHeatmap(p,mission,var,run, errors)
 
 
-def correlationCoefficients(p: Path, metric_list, vars = None):
-    Grapher.generate_data(metric_list, p, vars)
-    Grapher.getCorrelations(metric_list, p / "Metric_Data", vars)
+def correlationCoefficients(self, p: Path, metric_list, vars = None):
+    Grapher.generate_data(self, metric_list, p, vars)
+    getCorrelations(metric_list, p, vars)
 
 
 def double_var_regress(p: Path, metric_list):
@@ -617,13 +629,13 @@ if __name__ == "__main__":
         #metrics to be analyse
         'metrics' : metric_list,
         #vars to analyse, leave as None for all vars in directory
-        'vars' : None,
-         
+        #'vars' : None,
+        'vars' : ["HEADING_CALIBRATION_ERROR", "BEARING_CALIBRATION_ERROR"],
         #mission used for data collection
         'mission' : "RACETRACK",
         #'mission' : "FOLLOW_CIRCLE",
         #'mission' : "FIXED_HEADING",
-
+        
         #single var to analyse if using Double axis or Heatmap function
         'single_var' : "HEADING_CALIBRATION_ERROR",
 
@@ -634,13 +646,14 @@ if __name__ == "__main__":
         'metric1' : "distfromRT",
         'metric2' : "sep_mean",
 
-        #double axis variable values to plot, 1 value = timestep on x axis, multiple values = variable values on x axis, leave empty to use all variable valus
-        "errors" : ["0", "30", "10", "40"]
+        #error values to plot using double axis or heatmap grapher. Leave as None if selecting all values of variable in directory
+        "errors" : ["0", "30", "10", "40"],
+        #"errors" : None 
 
     }
 
 
-    grapher = Grapher(parameters, outputs["3"])
+    grapher = Grapher(parameters, outputs["4"])
 
     
 
