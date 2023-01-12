@@ -81,6 +81,7 @@ class Grapher():
         
         return ind_var_output
 
+<<<<<<< Updated upstream
     def generate_data(self, metric_list: dict, directory: Path, reduction: str="mean", specific_param: list=None):
         data_folder = directory / "Metric_Data"
 
@@ -116,6 +117,62 @@ class Grapher():
                     f = folder / k 
                     f.mkdir(parents=True, exist_ok=True)
                     v.to_csv(path_or_buf=(f / "metric_data.csv"), index=False)
+=======
+
+    def get_all_var_data(self, metric_list: dict, directory: Path, reduction: str="mean", graph_func=None,
+                         save_data: bool=True, specific_param: list=None, justGraphs: bool = False, **kwargs):
+        """
+        Takes in a list of metrics and a directory of multilpe variables changing and produces the metric data 
+        of the simulations in that directory. There will be data for a set of graphs for each variable for each metric.
+
+        Parameters
+            metric_list: dict
+                A dictionary linking the name of a metric to a metric information.
+            directory: Path
+                The directory of the data being read.
+            reduction: str
+                The method used to reduce the data of the runs into one list of values. Should either be "mean"
+                or "runN" where N is the number of the run to extract.
+            graph_func:
+                The function used to produce a graph from the data
+            save_data: bool
+                A flag that will denote whether or not to save the raw data from the metrics.
+            specific_param: list
+                A list of specific parameters to run (e.g. ["BANDWIDTH", "PACKET_LOSS"]) if only some of the parameters
+                are needed to be run. If None, then all of the parameters will be run
+            save_folder:
+                If you would rather save the graph and metric data in subfolders so that they are easily accessible, 
+                name that folder here. If None, will save directly to Graphs/var/metric/
+            **kwargs:
+                Keyword arguments for the graph function
+        """
+        data_folder = directory / "Metric_Data"
+        fig_folder = directory / "Graphs"
+        if save_data:
+            data_folder.mkdir(parents=True, exist_ok=True)
+        if graph_func:
+            fig_folder.mkdir(parents=True, exist_ok=True)
+        
+        for var in directory.iterdir():
+            if var.name in ["Graphs", "Metric_Data"]:
+                continue
+            if specific_param is not None and not var.name in specific_param:
+                continue
+          
+            for metric_name, metric_info in metric_list.items():
+                if justGraphs == False:
+
+
+                    metric = metric_info["instance"]
+                    name = "{} - {}".format(var.name, metric_name)
+                    
+                    if metric_name == "col_num":
+                        reduction="none"
+                    if len(os.listdir(var)) > len(os.listdir(data_folder / var.name / metric_name)):
+                        ind_var_output = self.get_single_var_data(metric, var, reduction=reduction)
+                        if save_data:
+                            folder = data_folder / var.name / metric_name    
+>>>>>>> Stashed changes
 
     def graph_single_var(self, data_path: Path, metric_list: dict, graph_func, save_folder: str, **kwargs):
         """
@@ -269,6 +326,7 @@ def read_multi_data( p: Path, metric_name="cdm", reduction="mean"):
                     else:
                         os.rename(str(metric) + "\\" +  n.name, str(metric) + "\\" +  "0" + (n.name))
         
+<<<<<<< Updated upstream
             if metric.name == metric_name:
                 
                 for bandwidth in metric.iterdir():
@@ -277,6 +335,37 @@ def read_multi_data( p: Path, metric_name="cdm", reduction="mean"):
                         data = pd.read_csv(bandwidth / "metric_data.csv")
                         data_arr[axis1_index[(packet_loss.name)], axis2_index[(bandwidth.name)]] = reduction(data.iloc[:,1].to_numpy())
     return axis1, axis2, data_arr  
+=======
+        axis1_index = {n:i for i,n in enumerate(axis1)}
+        axis2 = []
+        for n in next(next(data_path.iterdir()).iterdir()).iterdir():
+           
+            if (n.name  in ["00", "70", "80", "90", "60"]) == False:
+                axis2.append(n.name)
+        axis2_index = {n:i for i,n in enumerate(axis2)}
+        
+        data_arr = np.zeros((len(axis1), len(axis2)))
+        for packet_loss in data_path.iterdir():
+
+            
+
+            for metric in packet_loss.iterdir():
+                for n in metric.iterdir():
+                    if len(n.name) < 2:
+                        if os.path.exists(str(metric) + "\\" +  "0" + (n.name)):
+                            shutil.rmtree(str(metric) + "\\" + n.name)
+                        else:
+                            os.rename(str(metric) + "\\" +  n.name, str(metric) + "\\" +  "0" + (n.name))
+          
+                if metric.name == metric_name:
+                  
+                    for bandwidth in metric.iterdir():
+                        
+                       # if (bandwidth.name in ["90", "80", "70", "00", "60"]) == False :
+                            data = pd.read_csv(bandwidth / "metric_data.csv")
+                            data_arr[axis1_index[(packet_loss.name)], axis2_index[(bandwidth.name)]] = reduction(data.iloc[:,1].to_numpy())
+        return axis1, axis2, data_arr  
+>>>>>>> Stashed changes
 
 
 def multivar_grapher( metric_list: dict, directory: Path, reduction: str="mean", graph_func1=None, graph_func2=None, graph_func3=None):
@@ -479,7 +568,7 @@ def determineCoefficient(d1, d2):
 
 def regressionGrad(X, y):
     #x - xlabels and y labels
-    #y = distacne from rt
+    #y = metric
     regr = linear_model.LinearRegression()
     regr.fit(X, y)
     predicted = regr.predict([[90, 1]])
@@ -502,7 +591,70 @@ if __name__ == "__main__":
     #print("start")
     # Path to the data that is 
     # being graphed
+<<<<<<< Updated upstream
     # p = Path("out/newrt")
+=======
+
+
+    p = Path("out/newrt")
+
+    mission = {
+        '1' : 'FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA',
+        '2' : 'FIXED_HEADING',
+        '3' : 'RACETRACK_EXTENDED'
+    }
+
+    parameters = {
+        '1' : 'ACCELERATION_CALIBRATION_ERROR',
+        '2' : 'ACCELERATION_ERROR',
+        '3' : 'BANDWIDTH',
+        '4' : 'BEARING_CALIBRATION_ERROR',
+        '5' : 'BEARING_ERROR',
+        '6' : 'FLOCK_SIZE',
+        '7' : 'HEADING_CALIBRATION_ERROR',
+        '8' : 'HEADING_ERROR',
+        '9' : 'PACKET_LOSS',
+        '10' : 'RANGE_CALIBRATION_ERROR',
+        '11' : 'RANGE_ERROR',
+        '12' : 'SPEED_CALIBRATION_ERROR',
+        '13' : 'SPEED_ERROR',
+        }
+
+    
+    graph_funcs = {
+        "1" : "Single_Var",
+        "2" : "Multi_var",
+        "3" : "Double_Axis",
+        "4" : "Heat_Map"
+    }
+
+
+    Grapher(Graph_func["1"], p, metric_list)
+
+
+
+    
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> Stashed changes
   #  p = Path("out/RTSING2")
     # Will write all metric data and make graphs automatically
     # Graph_func should have the same parameters as the defined ones, and as many keyword arguments

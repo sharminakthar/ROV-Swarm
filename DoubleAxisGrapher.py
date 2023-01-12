@@ -135,8 +135,14 @@ class DAG:
             "desc": "Difference from optimal trajectory",
             "unit": "$^\circ$",
             "axis_label": "Angle From Optimal Trajectory",
+            },
+                
+        "distfromRT": {
+            "desc": "Distance from Racetrack",
+            "unit": "m",
+            "axis_label": "Dist. from RT",
             }
-    }
+    },
     def __init__(self, mission , parameter, M1 ,M2, run):
         self.Mission = mission
         self.parameter = parameter
@@ -148,18 +154,18 @@ class DAG:
         self.y1 , self.y2 = self.getYaxis(M1,M2)
 
     def openfile(self, metric):
-        pathname = "Metric_Data/"+self.parameter+"/"+metric
+        pathname = "C:/Users/peter/Documents/gdp/swarm-simulator/out/newrt/Metric_Data/"+self.parameter+"/"+metric
         filenames = os.listdir(pathname)
         data = {}
 
         for i in filenames:
-            d = pd.read_csv("Metric_Data/"+self.parameter+"/"+metric+'/'+i+'/metric_data.csv')
+            d = pd.read_csv(pathname+'/'+i+'/metric_data.csv')
             data[i] = d
 
         return data
 
     def GettingXA(self, metric):
-        pathname = pathname = "Metric_Data/"+self.parameter+"/"+metric
+        pathname =  "C:/Users/peter/Documents/gdp/swarm-simulator/out/newrt/Metric_Data/"+self.parameter+"/"+metric 
         filenames = os.listdir(pathname)
         for x in range(len(filenames)):
             if filenames[x].isdigit():
@@ -272,7 +278,7 @@ class DAG:
 
 if __name__ == "__main__":
 
-    b = DAG("RACETRACK","BANDWIDTH","sep_min","speed","0")
-    b.plotSingleError('0.5')
+    b = DAG("RACETRACK","HEADING_CALIBRATION_ERROR","sep_mean","distfromRT","0")
+    b.plotSingleError('30')
 
     print("done")
