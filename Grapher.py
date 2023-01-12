@@ -2,7 +2,7 @@ import os
 import shutil
 from pathlib import Path
 from textwrap import wrap
-
+import itertools
 import pandas as pd
 import numpy as np
 import seaborn as sb
@@ -14,12 +14,26 @@ from sklearn import linear_model
 from MetricsList import units_list, metric_list
 from metrics.BaseMetric import BaseMetric
 from metrics.Helper_Functions import moving_average
-
+from DoubleAxisGrapher import DAG
+from metrics.Heatmaps import GetHeatmap
 
 class Grapher():
     
-    def __init__(self):
-        pass
+    def __init__(self, parameters: dict, outputFunc):
+
+        if outputFunc == 1:
+            outputFunc(parameters["path"], parameters["metrics"], parameters["vars"])
+        elif outputFunc == 2:
+            outputFunc(parameters["path"], parameters["mission"], parameters["single_var"], parameters["metric1"], parameters["metric2"], parameters["run"], parameters["var_val"] )
+        elif outputFunc == 3:
+            outputFunc(parameters["path"], parameters["mission"], parameters["single_var"], parameters["run"])
+        elif outputFunc == 4:
+            outputFunc(parameters["path"], parameters["metrics"], parameters["vars"])
+        elif outputFunc == 5:
+            outputFunc(parameters["path"], parameters["metrics"])
+        elif outputFunc == 6:
+            outputFunc(parameters["path"], parameters["metrics"], parameters["vars"])
+
 
     def get_single_val_data(self, metric: BaseMetric, directory: Path) -> pd.DataFrame:
         """
@@ -64,8 +78,8 @@ class Grapher():
         Returns
             A dictionary linking each variable value to the values of the metric at each timestep.
         """
+        
         ind_var_output = {}
-        reduction = "mean"
         for ind_var in directory.iterdir():
             df = self.get_single_val_data(metric, ind_var)
             result = None
@@ -81,21 +95,14 @@ class Grapher():
         
         return ind_var_output
 
-<<<<<<< Updated upstream
-    def generate_data(self, metric_list: dict, directory: Path, reduction: str="mean", specific_param: list=None):
-        data_folder = directory / "Metric_Data"
 
-        for var_order in directory.iterdir():
-            # Skip directories if they are graphs, metric data, or they are not a param that was specified
-            if var_order.name in ["Graphs", "Metric_Data"]:
-                continue
-            if specific_param is not None and not var_order.name in specific_param:
-                continue
+    def generate_data(self, metric_list: dict, directory: Path, reduction: str="mean", vars = None):
+        data_folder = directory / "Metric_Data"
 
         # Find all folders two up from the raw data - i.e. the list of 1d variables to run
         final_var_dirs = []
         for dirpath, dirnames, filenames in os.walk(directory):
-            if "Metric_Data" in dirpath or "Graphs" in dirpath or "raw_data_log.csv" in filenames:
+            if "Metric_Data" in dirpath or "Graphs" in dirpath or "raw_data_log.csv" in filenames or dirpath or any(var in dirpath for var in vars) == False:
                 continue
             if "metadata.csv" in filenames:
                 parent = os.path.dirname(dirpath)
@@ -107,92 +114,45 @@ class Grapher():
             for metric_name, metric_info in metric_list.items():
                 name = "{} - {}".format(p.name, metric_name)
                 print(name)
-                metric = metric_info["instance"]
-                folder = data_folder / d[len(str(directory))+1:] / metric_name
-                ind_var_output = self.get_single_var_data(metric, p, reduction=reduction)
+                if len(os.listdir(p)) > len(os.listdir(data_folder / p.name / metric_name)):
+                    #ind_var_output = self.get_single_var_data(metric, var, reduction=reduction)
+                    folder = data_folder / p.name / metric_name    
+                    metric = metric_info["instance"]
+                    #folder = data_folder / d[len(str(directory))+1:] / metric_name
+                    if metric_name == "col_num":
+                        reduction = "none"
+                    ind_var_output = self.get_single_var_data(metric, p, reduction=reduction)
                     
                 # k is the value of the independent variable
                 # v is the metric data at that variable
-                for k, v in ind_var_output.items():
-                    f = folder / k 
-                    f.mkdir(parents=True, exist_ok=True)
-                    v.to_csv(path_or_buf=(f / "metric_data.csv"), index=False)
-=======
+                    for k, v in ind_var_output.items():
+                        f = folder / k 
+                        f.mkdir(parents=True, exist_ok=True)
+                        v.to_csv(path_or_buf=(f / "metric_data.csv"), index=False)
 
-    def get_all_var_data(self, metric_list: dict, directory: Path, reduction: str="mean", graph_func=None,
-                         save_data: bool=True, specific_param: list=None, justGraphs: bool = False, **kwargs):
-        """
-        Takes in a list of metrics and a directory of multilpe variables changing and produces the metric data 
-        of the simulations in that directory. There will be data for a set of graphs for each variable for each metric.
+    
 
-        Parameters
-            metric_list: dict
-                A dictionary linking the name of a metric to a metric information.
-            directory: Path
-                The directory of the data being read.
-            reduction: str
-                The method used to reduce the data of the runs into one list of values. Should either be "mean"
-                or "runN" where N is the number of the run to extract.
-            graph_func:
-                The function used to produce a graph from the data
-            save_data: bool
-                A flag that will denote whether or not to save the raw data from the metrics.
-            specific_param: list
-                A list of specific parameters to run (e.g. ["BANDWIDTH", "PACKET_LOSS"]) if only some of the parameters
-                are needed to be run. If None, then all of the parameters will be run
-            save_folder:
-                If you would rather save the graph and metric data in subfolders so that they are easily accessible, 
-                name that folder here. If None, will save directly to Graphs/var/metric/
-            **kwargs:
-                Keyword arguments for the graph function
-        """
-        data_folder = directory / "Metric_Data"
-        fig_folder = directory / "Graphs"
-        if save_data:
-            data_folder.mkdir(parents=True, exist_ok=True)
-        if graph_func:
-            fig_folder.mkdir(parents=True, exist_ok=True)
-        
-        for var in directory.iterdir():
-            if var.name in ["Graphs", "Metric_Data"]:
-                continue
-            if specific_param is not None and not var.name in specific_param:
-                continue
-          
-            for metric_name, metric_info in metric_list.items():
-                if justGraphs == False:
-
-
-                    metric = metric_info["instance"]
-                    name = "{} - {}".format(var.name, metric_name)
-                    
-                    if metric_name == "col_num":
-                        reduction="none"
-                    if len(os.listdir(var)) > len(os.listdir(data_folder / var.name / metric_name)):
-                        ind_var_output = self.get_single_var_data(metric, var, reduction=reduction)
-                        if save_data:
-                            folder = data_folder / var.name / metric_name    
->>>>>>> Stashed changes
-
-    def graph_single_var(self, data_path: Path, metric_list: dict, graph_func, save_folder: str, **kwargs):
+    def graph_single_var(self, data_path: Path, metric_list: dict, graph_func, save_folder: str, vars = None, **kwargs):
         """
         Will graph all metrics on a single variable
         """
         for var in data_path.iterdir():
-            for metric_name, metric_info in metric_list.items():
-                ind_var_output = {}
-                folder = var / metric_name 
-                if not folder.exists():
-                    continue
-                for k in folder.iterdir():
-                    df = pd.read_csv(k / "metric_data.csv")
-                    ind_var_output[k.name] = df
+            if (var.name in vars) == False:
+                for metric_name, metric_info in metric_list.items():
+                    ind_var_output = {}
+                    folder = var / metric_name 
+                    if not folder.exists():
+                        continue
+                    for k in folder.iterdir():
+                        df = pd.read_csv(k / "metric_data.csv")
+                        ind_var_output[k.name] = df
                 
-                fig = graph_func(ind_var_output, metric_info, var.name, **kwargs)
-                folder = data_path.parent / save_folder / var.name / metric_name
-                folder.mkdir(parents=True, exist_ok=True)
-                fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
-                plt.close(fig)
+                    fig = graph_func(ind_var_output, metric_info, var.name, **kwargs)
+                    folder = data_path.parent / save_folder / var.name / metric_name
+                    folder.mkdir(parents=True, exist_ok=True)
+                    fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
+                    plt.close(fig)
+
 
     def graph_double_var(self, data_path: Path, metric_list: dict, graph_func, save_folder: str, **kwargs):
         """
@@ -205,7 +165,7 @@ class Grapher():
             for j,var2 in enumerate(var1.iterdir()):
                 for metric_name, metric_info in metric_list.items():
                     ind_var_output = {}
-                    folder = var / metric_name 
+                    folder = var1 / metric_name 
                     if not folder.exists():
                         continue
                     for k in folder.iterdir():
@@ -290,10 +250,6 @@ class Grapher():
         ax.set_ylabel("{} ({})".format(metric_info["axis_label"], metric_info["unit"]))
 
         return fig
-    
-def read_multivar(p: Path, metric_name: str):
-    data_path = p / "Metric_Data"
-
 
 def read_multi_data( p: Path, metric_name="cdm", reduction="mean"):
     reduction = determine_bar_reduction(reduction)
@@ -325,17 +281,7 @@ def read_multi_data( p: Path, metric_name="cdm", reduction="mean"):
                         shutil.rmtree(str(metric) + "\\" + n.name)
                     else:
                         os.rename(str(metric) + "\\" +  n.name, str(metric) + "\\" +  "0" + (n.name))
-        
-<<<<<<< Updated upstream
-            if metric.name == metric_name:
-                
-                for bandwidth in metric.iterdir():
-                    
-                    if (bandwidth.name in ["90", "80", "70", "00", "60"]) == False :
-                        data = pd.read_csv(bandwidth / "metric_data.csv")
-                        data_arr[axis1_index[(packet_loss.name)], axis2_index[(bandwidth.name)]] = reduction(data.iloc[:,1].to_numpy())
-    return axis1, axis2, data_arr  
-=======
+                        
         axis1_index = {n:i for i,n in enumerate(axis1)}
         axis2 = []
         for n in next(next(data_path.iterdir()).iterdir()).iterdir():
@@ -357,15 +303,14 @@ def read_multi_data( p: Path, metric_name="cdm", reduction="mean"):
                         else:
                             os.rename(str(metric) + "\\" +  n.name, str(metric) + "\\" +  "0" + (n.name))
           
-                if metric.name == metric_name:
-                  
-                    for bandwidth in metric.iterdir():
-                        
-                       # if (bandwidth.name in ["90", "80", "70", "00", "60"]) == False :
-                            data = pd.read_csv(bandwidth / "metric_data.csv")
-                            data_arr[axis1_index[(packet_loss.name)], axis2_index[(bandwidth.name)]] = reduction(data.iloc[:,1].to_numpy())
-        return axis1, axis2, data_arr  
->>>>>>> Stashed changes
+            if metric.name == metric_name:
+                
+                for bandwidth in metric.iterdir():
+                    
+                   # if (bandwidth.name in ["90", "80", "70", "00", "60"]) == False :
+                        data = pd.read_csv(bandwidth / "metric_data.csv")
+                        data_arr[axis1_index[(packet_loss.name)], axis2_index[(bandwidth.name)]] = reduction(data.iloc[:,1].to_numpy())
+    return axis1, axis2, data_arr  
 
 
 def multivar_grapher( metric_list: dict, directory: Path, reduction: str="mean", graph_func1=None, graph_func2=None, graph_func3=None):
@@ -424,7 +369,7 @@ def determine_bar_reduction(bar_reduction):
     
     return func
 
-def generate_MultiVar_heatmap( dataArray, xlabels, ylabels):
+def generate_multivar_heatmap( dataArray, xlabels, ylabels):
         #var1_name = " ".join([w.capitalize() for w in var1.split("_")])
         #var2_name = " ".join([w.capitalize() for w in var2.split("_")])
 
@@ -444,7 +389,7 @@ def generate_MultiVar_heatmap( dataArray, xlabels, ylabels):
         #plt.show()
         return fig
 
-def generate_3DBarChart( dataArray, ylabels, xlabels):
+def generate_3Dbar( dataArray, ylabels, xlabels):
         #var1_name = " ".join([w.capitalize() for w in var1.split("_")])
         #var2_name = " ".join([w.capitalize() for w in var2.split("_")])
 
@@ -475,7 +420,7 @@ def generate_3DBarChart( dataArray, ylabels, xlabels):
         return fig
 
 
-def generate_3D_Contour_Plot(dataArray, ylabels, xlabels):
+def generate_surface_plot(dataArray, ylabels, xlabels):
     print(xlabels)
     #xlabels = [1.0, 0.88, 0.77, 0.65, 0.53,0.41,0.3,0.18,0.03]
     #xlabels = [0.88, 0.77, 0.65, 0.53,0.41]
@@ -500,7 +445,8 @@ def generate_3D_Contour_Plot(dataArray, ylabels, xlabels):
     #ax.contour3D(X, Y, Z, cmap="binary")
     return fig
 
-def getCorrelations(metric_list: dict, directory: Path):
+
+def getCorrelations(self, metric_list: dict, directory: Path, varList):
     data_path = directory/"Metric_Data"
 
     numOfMetrics = len(metric_list)
@@ -508,6 +454,8 @@ def getCorrelations(metric_list: dict, directory: Path):
     vars = []
 
     for var in data_path.iterdir():
+        if var.name in varList:
+            continue
         vars.append(var.name)
         coeffs = []
         metrics = []
@@ -566,7 +514,7 @@ def determineCoefficient(d1, d2):
     return corr
 
 
-def regressionGrad(X, y):
+def regressionGrad(self, X, y):
     #x - xlabels and y labels
     #y = metric
     regr = linear_model.LinearRegression()
@@ -579,10 +527,138 @@ def regressionGrad(X, y):
     return arr
 
 
+def double_var_charts(p: Path, metric_list, vars):  
+    Grapher.generate_data(metric_list, p)
+    Grapher.graph_double_var(p, metric_list, Grapher.generate_multivar_heatmap)
+    Grapher.graph_double_var(p, metric_list, Grapher.generate_3D_bar)
+    Grapher.graph_double_var(p, metric_list, Grapher.generate_surface_plot)
+
+def doubleAxisGraph(p, mission, var, metric1, metric2, run, error ):
+    b = DAG(mission, var, metric1, metric2, run)
+    b.plotSingleError(error)
+
+def heatmaps(p, mission, var, run):
+    GetHeatmap(p,mission,var,run)
+
+
+def correlationCoefficients(p: Path, metric_list, vars = None):
+    Grapher.generate_data(metric_list, p, vars)
+    Grapher.getCorrelations(metric_list, p, vars)
+
+
+def double_var_regress(p: Path, metric_list):
+    metric_name = "distfromRT"
+    axis1, axis2, arr = Grapher.graph_double_var(p, metric_list)
+    
+    c = list(itertools.product(axis1, axis2))
+    output = arr.flatten()
+    c1 = list(zip(*c))[0]
+    c2 = list(zip(*c))[1]
+
+    df = pd.DataFrame({'x':c1, 'y':c2})
+
+    df["output"] = output
+    df["output"] = (df["output"]  - df["output"].min()) /( df["output"].abs().max() - df["output"].min())
+
+    print(regressionGrad(df[["x","y"]],df["output"] ))
+
+def single_var_charts(p: Path, metric_list, vars):
+    Grapher.generate_data(metric_list, p, vars = vars)
+    Grapher.graph_single_var(p,metric_list, grapher.generate_line_chart, vars = vars)
+    Grapher.graph_single_var(p, metric_list, grapher.generate_bar_chart, vars = vars)        
+
+
 if __name__ == "__main__":
     grapher = Grapher()
     p = Path("out/FOLLOW_CIRCLE_MULTI")
-    grapher.generate_data(metric_list, p)
+
+
+
+
+    outputs = {
+        '1' : "double_var_charts",
+        '2' : "doubleAxisGraph",
+        '3' : "heatmaps",
+        '4' : "correlationCoefficients",
+        '5' : "double_var_regress",
+        '6' : "single_var_charts"
+    }
+
+    vars = ["FLOCK_SIZE", "BANDWIDTH", "PACKET_LOSS", "SPEED_ERROR", "HEADING_ERROR", 
+                 "RANGE_ERROR", "BEARING_ERROR", "ACCELERATION_ERROR", "SPEED_CALIBRATION_ERROR",
+                 "HEADING_CALIBRATION_ERROR", "RANGE_CALIBRATION_ERROR", "BEARING_CALIBRATION_ERROR",
+                 "ACCELERATION_CALIBRATION_ERROR"]
+
+    parameters = {
+
+        #directory of multi-sim data
+        'path' : p,
+
+        #metrics to be analyse
+        'metrics' : metric_list,
+
+        #vars to analyse, leave as None for all vars in directory
+        'vars' : vars,
+
+        #mission used for data collection
+        'mission' : "Racetrack",
+
+
+        #single var to analyse if using Double axis or Heatmap function
+        'single_var' : "HEADING_CALIBRATION_ERROR",
+        #run instance if using double axis or heatmap function
+        'run' : 0,
+
+        #metrics to compare using double axis graph
+        'metric1' : "distfromRT",
+        'metric2' : "sep_mean",
+
+        #value to draw for double axis graph line
+        "var_val" : "30"
+
+    }
+
+
+    grapher = Grapher(parameters, outputs["1"])
+
+    
+
+
+
+
+
+
+
+
+    #grapher.generate_data(metric_list, p)
+
+
+
+
+
+    '''All:
+- Path
+
+
+
+Line & bar:
+- metric list
+- var list
+
+Double var:
+- 2 vars
+- metric list
+
+Double axis:
+- metric 1 and 2
+- var
+- var value
+- run instance 
+
+Heatmap:
+- mission type
+- var
+- run instance'''
     quit()
     grapher.graph_single_var(Path("out/FIXED_HEADING_ULTRA_EXTENDED/Metric_Data"), metric_list, grapher.generate_line_chart,
                              "Graphs")
@@ -591,9 +667,6 @@ if __name__ == "__main__":
     #print("start")
     # Path to the data that is 
     # being graphed
-<<<<<<< Updated upstream
-    # p = Path("out/newrt")
-=======
 
 
     p = Path("out/newrt")
@@ -654,7 +727,6 @@ if __name__ == "__main__":
 
 
 
->>>>>>> Stashed changes
   #  p = Path("out/RTSING2")
     # Will write all metric data and make graphs automatically
     # Graph_func should have the same parameters as the defined ones, and as many keyword arguments
