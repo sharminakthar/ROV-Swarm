@@ -20,18 +20,17 @@ from metrics.Heatmaps import GetHeatmap
 class Grapher():
     
     def __init__(self, parameters: dict, outputFunc):
-        print(outputFunc)
     
         if outputFunc == double_var_charts:
-            outputFunc(parameters["path"], parameters["metrics"], parameters["vars"])
+            double_var_charts(self, parameters["path"], parameters["metrics"])
         elif outputFunc == doubleAxisGraph:
-            doubleAxisGraph(self, parameters["path"], parameters["mission"], parameters["single_var"], parameters["metric1"], parameters["metric2"], parameters["run"], parameters["var_vals"] )
+            doubleAxisGraph(self, parameters["path"], parameters["mission"], parameters["single_var"], parameters["metric1"], parameters["metric2"], parameters["run"], parameters["errors"] )
         elif outputFunc == heatmaps:
-            outputFunc(parameters["path"], parameters["mission"], parameters["single_var"], parameters["run"])
+            heatmaps(self, parameters["path"], parameters["mission"], parameters["single_var"], parameters["run"], parameters["errors"])
         elif outputFunc == correlationCoefficients:
-            outputFunc(parameters["path"], parameters["metrics"], parameters["vars"])
+            correlationCoefficients(self, parameters["path"], parameters["metrics"], parameters["vars"])
         elif outputFunc == double_var_regress:
-            outputFunc(parameters["path"], parameters["metrics"])
+            double_var_regress(self, parameters["path"], parameters["metrics"])
         elif outputFunc == single_var_charts:
             
             single_var_charts(self, parameters["path"], parameters["metrics"], parameters["vars"])
@@ -142,6 +141,8 @@ class Grapher():
         for var in data_path.iterdir():
             if (vars != None and (var.name in vars )== False or (vars == None)):
                 for metric_name, metric_info in metric_list.items():
+
+                    print(var.name + ": " + metric_name)
                     ind_var_output = {}
                     folder = var / metric_name 
                     if not folder.exists():
@@ -154,10 +155,12 @@ class Grapher():
                     if save_folder !=  None:
                         folder = data_path.parent / save_folder / var.name / metric_name
                     else:
-                        folder = data_path.parent / var.name / metric_name
+                        folder = data_path.parent / "Graphs" / var.name / metric_name
+
                     folder.mkdir(parents=True, exist_ok=True)
                     fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
                     plt.close(fig)
+                    
 
 
     def graph_double_var(self, data_path: Path, metric_list: dict, graph_func, save_folder: str, **kwargs):
@@ -533,7 +536,7 @@ def regressionGrad(self, X, y):
     return arr
 
 
-def double_var_charts(p: Path, metric_list, vars):  
+def double_var_charts(p: Path, metric_list):  
     Grapher.generate_data(metric_list, p)
     Grapher.graph_double_var(p / "Metric_Data", metric_list, Grapher.generate_multivar_heatmap)
     Grapher.graph_double_var(p / "Metric_Data", metric_list, Grapher.generate_3D_bar)
@@ -543,8 +546,8 @@ def double_var_charts(p: Path, metric_list, vars):
 def doubleAxisGraph(self, p, mission, var, metric1, metric2, run, errors ):
     b = DAG(p, mission, var, metric1, metric2, run, errors)
 
-def heatmaps(p, mission, var, run):
-    GetHeatmap(p,mission,var,run)
+def heatmaps(self, p, mission, var, run, errors):
+    GetHeatmap(p,mission,var,run, errors)
 
 
 def correlationCoefficients(p: Path, metric_list, vars = None):
@@ -617,7 +620,9 @@ if __name__ == "__main__":
         'vars' : None,
          
         #mission used for data collection
-        'mission' : "Racetrack",
+        'mission' : "RACETRACK",
+        #'mission' : "FOLLOW_CIRCLE",
+        #'mission' : "FIXED_HEADING",
 
         #single var to analyse if using Double axis or Heatmap function
         'single_var' : "HEADING_CALIBRATION_ERROR",
@@ -630,12 +635,12 @@ if __name__ == "__main__":
         'metric2' : "sep_mean",
 
         #double axis variable values to plot, 1 value = timestep on x axis, multiple values = variable values on x axis, leave empty to use all variable valus
-        "var_vals" : "30"
+        "errors" : ["0", "30", "10", "40"]
 
     }
 
 
-    grapher = Grapher(parameters, outputs["2"])
+    grapher = Grapher(parameters, outputs["3"])
 
     
 
@@ -651,52 +656,6 @@ if __name__ == "__main__":
     quit()
     grapher.graph_single_var(Path("out/FIXED_HEADING_ULTRA_EXTENDED/Metric_Data"), metric_list, grapher.generate_line_chart,
                              "Graphs")
-    quit()
-
-    #print("start")
-    # Path to the data that is 
-    # being graphed
-
-
-    p = Path("out/newrt")
-
-    mission = {
-        '1' : 'FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA',
-        '2' : 'FIXED_HEADING',
-        '3' : 'RACETRACK_EXTENDED'
-    }
-
-    parameters = {
-        '1' : 'ACCELERATION_CALIBRATION_ERROR',
-        '2' : 'ACCELERATION_ERROR',
-        '3' : 'BANDWIDTH',
-        '4' : 'BEARING_CALIBRATION_ERROR',
-        '5' : 'BEARING_ERROR',
-        '6' : 'FLOCK_SIZE',
-        '7' : 'HEADING_CALIBRATION_ERROR',
-        '8' : 'HEADING_ERROR',
-        '9' : 'PACKET_LOSS',
-        '10' : 'RANGE_CALIBRATION_ERROR',
-        '11' : 'RANGE_ERROR',
-        '12' : 'SPEED_CALIBRATION_ERROR',
-        '13' : 'SPEED_ERROR',
-        }
-
-    
-    graph_funcs = {
-        "1" : "Single_Var",
-        "2" : "Multi_var",
-        "3" : "Double_Axis",
-        "4" : "Heat_Map"
-    }
-
-
-    Grapher(Graph_func["1"], p, metric_list)
-
-
-
-    
-
 
 
 
