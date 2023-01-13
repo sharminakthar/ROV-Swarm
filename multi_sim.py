@@ -99,25 +99,25 @@ if __name__ == "__main__":
         Setting.BEARING_CALIBRATION_ERROR: [round( i*8,2) for i in range(10)],
         Setting.ACCELERATION_CALIBRATION_ERROR: [round(i,2) + 48 for i in range(1)]
         }
+
+    # To run each variable independently: 
     # for var in ["FLOCK_SIZE", "BANDWIDTH", "PACKET_LOSS", "SPEED_ERROR", "HEADING_ERROR", 
     #             "RANGE_ERROR", "BEARING_ERROR", "ACCELERATION_ERROR", "SPEED_CALIBRATION_ERROR",
     #             "HEADING_CALIBRATION_ERROR", "RANGE_CALIBRATION_ERROR", "BEARING_CALIBRATION_ERROR",
     #             "ACCELERATION_CALIBRATION_ERROR"]:
-    #for var in ["HEADING_ERROR"]:
-    # for var in ["FLOCK_SIZE", "BANDWIDTH", "PACKET_LOSS", "SPEED_ERROR", "HEADING_ERROR", 
-    #             "RANGE_ERROR", "BEARING_ERROR", "ACCELERATION_ERROR"]:
-    #for var in ["ACCELERATION_CALIBRATION_ERROR","RANGE_CALIBRATION_ERROR", "SPEED_CALIBRATION_ERROR",
-    #            "HEADING_CALIBRATION_ERROR"]:
     #    runner = MultiRunner([[var]])
-    #    runner.run()
+    #    runner.run("RT Raw Data", DroneObjective.RACETRACK)
     
     # Will run just range calibration error
-    runner = MultiRunner([[Setting.RANGE_CALIBRATION_ERROR]], variables)
-    runner.run("newrt", DroneObjective.RACETRACK)
+    # runner = MultiRunner([[Setting.RANGE_CALIBRATION_ERROR]], variables)
+    # runner.run("RT Raw Data", DroneObjective.RACETRACK)
+
     # will run all combinations of flock size and packet loss
     #runner = MultiRunner([["FLOCK_SIZE"],["PACKET_LOSS"]])
-    #runner.run()
-    # Will join together flock size and packet loss, and cross with range calibration error
+    #runner.run("RT Raw Data", DroneObjective.RACETRACK)
+
+    # Will join together flock size and packet loss so that they increase at the same time,
+    # and cross with range calibration error
     # runner = MultiRunner([["FLOCK_SIZE", "PACKET_LOSS"], ["RANGE_CALIBRATION_ERROR"]])
-    # runner.run()
+    # runner.run("RT Raw Data", DroneObjective.RACETRACK)
 
