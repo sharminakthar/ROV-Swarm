@@ -137,7 +137,6 @@ class Grapher():
         """
         Will graph all metrics on a single variable
         """
-
         for var in data_path.iterdir():
             if (vars != None and (var.name in vars )== False or (vars == None)):
                 for metric_name, metric_info in metric_list.items():
@@ -167,25 +166,29 @@ class Grapher():
         """
         Will graph all metrics on two variables that are co-varying
         """
-        axis1 = [n.name for n in data_path.iterdir()]
-        axis2 = [n.name for n in next(data_path.iterdir()).iterdir()]
+        for metric_name, metric_info in metric_list.items():
+            axis1 = [n.name for n in data_path.iterdir()]
+            axis2 = [n.name for n in next(next(data_path.iterdir()).iterdir()).iterdir()]
+            double_var_out = {}
+            for i,var1 in enumerate(data_path.iterdir()):     
+                print(var1.name + ": " + metric_name)
+                ind_var_output = {}
+                folder = var1 / metric_name 
+                if not folder.exists():
+                    continue
+                for k in folder.iterdir():
+                    df = pd.read_csv(k / "metric_data.csv")
+                    ind_var_output[k.name] = df
 
-        for i,var1 in enumerate(data_path.iterdir()):
-            for j,var2 in enumerate(var1.iterdir()):
-                for metric_name, metric_info in metric_list.items():
-                    ind_var_output = {}
-                    folder = var1 / metric_name 
-                    if not folder.exists():
-                        continue
-                    for k in folder.iterdir():
-                        df = pd.read_csv(k / "metric_data.csv")
-                        ind_var_output[k.name] = df
+                double_var_out[var1.name] = ind_var_output
+
+            double_var_out = pd.DataFrame(double_var_out)
                     
-                    fig = graph_func(ind_var_output, metric_info, var.name, **kwargs)
-                    folder = data_path.parent / save_folder / var.name / metric_name
-                    folder.mkdir(parents=True, exist_ok=True)
-                    fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
-                    plt.close(fig)
+            fig = graph_func(double_var_out.to_numpy(), axis1, axis2, **kwargs)
+            folder = data_path.parent / save_folder / metric_name
+            folder.mkdir(parents=True, exist_ok=True)
+            fig.savefig(folder / (metric_name + ".png"), bbox_inches="tight")
+            plt.close(fig)
 
     
     def generate_smooth_line_chart(self, data, metric_info, var, adj_points=3):
@@ -592,9 +595,6 @@ def single_var_charts(self, p: Path, metric_list, vars):
 if __name__ == "__main__":
     p = Path("out/RACETRACK_EXTENDED")
 
-
-
-
     #selected output function
     outputs = {
         #Double independent variable graphs
@@ -618,12 +618,11 @@ if __name__ == "__main__":
 
     #Vars to analyse if not all in directory, otherwise set as None in parameters
     vars = ["FLOCK_SIZE", "BANDWIDTH", "PACKET_LOSS", "SPEED_ERROR", "HEADING_ERROR", 
-                 "RANGE_ERROR", "BEARING_ERROR", "ACCELERATION_ERROR", "SPEED_CALIBRATION_ERROR",
-                 "HEADING_CALIBRATION_ERROR", "RANGE_CALIBRATION_ERROR", "BEARING_CALIBRATION_ERROR",
-                 "ACCELERATION_CALIBRATION_ERROR"]
+            "RANGE_ERROR", "BEARING_ERROR", "ACCELERATION_ERROR", "SPEED_CALIBRATION_ERROR",
+            "HEADING_CALIBRATION_ERROR", "RANGE_CALIBRATION_ERROR", "BEARING_CALIBRATION_ERROR",
+            "ACCELERATION_CALIBRATION_ERROR"]
 
     parameters = {
-
         #directory of multi-sim data
         'path' : p,
         #metrics to be analyse
@@ -635,7 +634,6 @@ if __name__ == "__main__":
         'mission' : "RACETRACK",
         #'mission' : "FOLLOW_CIRCLE",
         #'mission' : "FIXED_HEADING",
-        
         #single var to analyse if using Double axis or Heatmap function
         'single_var' : "HEADING_CALIBRATION_ERROR",
 
