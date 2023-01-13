@@ -29,56 +29,58 @@ units_list = {
     "SPEED_ERROR": "m/s"
 }
 
+
+#uncomment metrics that you want the grapher to run
 metric_list = {                  
-                    "sep_min": {
-                        "desc": "Minimum separation between drones",
-                        "unit": "m",
-                        "axis_label": "Minimum Drone Separation",
-                        "instance": Separation()
-                        },
-                        "cdm": {
-                        "desc": "Distance between drones and centre of flock",
-                        "unit": "m",
-                        "axis_label": "Average Distance From the Centre",
-                        "instance": CentreDistMetric(),
-                        },
+               #     "sep_min": {
+               #         "desc": "Minimum separation between drones",
+               #         "unit": "m",
+               #         "axis_label": "Minimum Drone Separation",
+               #         "instance": Separation()
+               #         },
+                #        "cdm": {
+                #        "desc": "Distance between drones and centre of flock",
+                #        "unit": "m",
+                #        "axis_label": "Average Distance From the Centre",
+                #        "instance": CentreDistMetric(),
+                #        },
 
                 #    "sep_max": {
                 #         "desc": "Maximum separation between drones",
-                #         "unit": "m",
-                #         "axis_label": "Maximum Drone Separation",
-                #         "instance": Separation(reduction="max")
-                #         },
-                #    "sep_mean": {
-                #         "desc": "Mean separation between drones",
-                #         "unit": "m",
-                #         "axis_label": "Mean Drone Separation",
-                #         "instance": Separation(reduction="mean")
-                #        },
-                #    "col_num": {
-                #         "desc": "Total number of collisions",
-                #          "unit": "",
-                #         "axis_label": "Number of Collisions",
-                #         "instance": CollisionsNumber()
-                #        },
-                    #"density": {
-                    #     "desc": "Density of the swarm",
-                    #     "unit": "m$^2$",
-                    #     "axis_label": "Swarm Density",
-                    #     "instance": Density()
-                    #    },
-                    # "orient": {
-                    #     "desc": "S.D of drone orientations",
-                    #     "unit": "$^\circ$",
-                    #     "axis_label": "Drone Orientation S.D",
-                    #     "instance": OrientationMetric()
-                    #     },
-                    # "pos_err": {
-                    #     "desc": "Calculated position error",
-                    #     "unit": "m",
-                    #     "axis_label": "Calculated Position Error",
-                    #     "instance": PerceivedPosMetric()
-                    #     },
+                ##         "unit": "m",
+                 #        "axis_label": "Maximum Drone Separation",
+                 #        "instance": Separation(reduction="max")
+                 #        },
+                    "sep_mean": {
+                         "desc": "Mean separation between drones",
+                         "unit": "m",
+                         "axis_label": "Mean Drone Separation",
+                         "instance": Separation(reduction="mean")
+                        },
+                    "col_num": {
+                         "desc": "Total number of collisions",
+                          "unit": "",
+                         "axis_label": "Number of Collisions",
+                         "instance": CollisionsNumber()
+                        },
+                    "density": {
+                         "desc": "Density of the swarm",
+                         "unit": "m$^2$",
+                         "axis_label": "Swarm Density",
+                         "instance": Density()
+                        },
+                     "orient": {
+                         "desc": "S.D of drone orientations",
+                         "unit": "$^\circ$",
+                         "axis_label": "Drone Orientation S.D",
+                         "instance": OrientationMetric()
+                         },
+                     "pos_err": {
+                         "desc": "Calculated position error",
+                         "unit": "m",
+                         "axis_label": "Calculated Position Error",
+                         "instance": PerceivedPosMetric()
+                         },
                     # "speed": {
                     #    "desc": "Speed of drones",
                     #     "unit": "m/s",
