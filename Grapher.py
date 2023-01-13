@@ -30,7 +30,7 @@ class Grapher():
         elif outputFunc == correlationCoefficients:
             correlationCoefficients(self, parameters["path"], parameters["metrics"], parameters["vars"])
         elif outputFunc == double_var_regress:
-            double_var_regress(self, parameters["path"], parameters["metrics"], parameters["regr_vals"], parameters["regr_metric"])
+            double_var_regress(self, parameters["path"], parameters["metrics"], parameters["regr_x1"], parameters["regr_x2"], parameters["regr_metric"])
         elif outputFunc == single_var_charts:
             
             single_var_charts(self, parameters["path"], parameters["metrics"], parameters["vars"])
@@ -271,65 +271,26 @@ class Grapher():
 
 
 def read_multi_data( p: Path, metric_name="cdm", reduction="mean"):
-    reduction = determine_bar_reduction(reduction)
-    names = p.name.split("-")[1:]
-    data_path = p / "Metric_data"
-    axis1 = [n.name for n in data_path.iterdir()]
-
-    for n in data_path.iterdir():
-        if len(n.name) < 2:
-            if os.path.exists(str(data_path) + "\\" +  "0" + (n.name)):
-                shutil.rmtree(str(data_path) + "\\" +  n.name)
-            else:
-                os.rename(str(data_path) + "\\" +  n.name, str(data_path) + "\\" +  "0" + (n.name))
-
-    axis1_index = {n:i for i,n in enumerate(axis1)}
-    axis2 = []
-    for n in next(next(data_path.iterdir()).iterdir()).iterdir():
-        
-       # if (n.name  in ["00", "70", "80", "90", "60"]) == False:
-            axis2.append(n.name)
-    axis2_index = {n:i for i,n in enumerate(axis2)}
-    
-    data_arr = np.zeros((len(axis1), len(axis2)))
-    for packet_loss in data_path.iterdir():
-        for metric in packet_loss.iterdir():
-            for n in metric.iterdir():
-                if len(n.name) < 2:
-                    if os.path.exists(str(metric) + "\\" +  "0" + (n.name)):
-                        shutil.rmtree(str(metric) + "\\" + n.name)
-                    else:
-                        os.rename(str(metric) + "\\" +  n.name, str(metric) + "\\" +  "0" + (n.name))
-                        
+        reduction = determine_bar_reduction(reduction)
+        names = p.name.split("-")[1:]
+        data_path = p / "Metric_data"
+        axis1 = [n.name for n in data_path.iterdir()]
         axis1_index = {n:i for i,n in enumerate(axis1)}
-        axis2 = []
-        for n in next(next(data_path.iterdir()).iterdir()).iterdir():
-           
-           # if (n.name  in ["00", "70", "80", "90", "60"]) == False:
-                axis2.append(n.name)
+        axis2 = [n.name for n in next(next(data_path.iterdir()).iterdir()).iterdir()]
         axis2_index = {n:i for i,n in enumerate(axis2)}
         
         data_arr = np.zeros((len(axis1), len(axis2)))
         for packet_loss in data_path.iterdir():
-
-            
-
             for metric in packet_loss.iterdir():
-                for n in metric.iterdir():
-                    if len(n.name) < 2:
-                        if os.path.exists(str(metric) + "\\" +  "0" + (n.name)):
-                            shutil.rmtree(str(metric) + "\\" + n.name)
-                        else:
-                            os.rename(str(metric) + "\\" +  n.name, str(metric) + "\\" +  "0" + (n.name))
-          
-            if metric.name == metric_name:
-                
-                for bandwidth in metric.iterdir():
-                    
-                   # if (bandwidth.name in ["90", "80", "70", "00", "60"]) == False :
+                if metric.name == metric_name:
+                    for bandwidth in metric.iterdir():
                         data = pd.read_csv(bandwidth / "metric_data.csv")
-                        data_arr[axis1_index[(packet_loss.name)], axis2_index[(bandwidth.name)]] = reduction(data.iloc[:,1].to_numpy())
-    return axis1, axis2, data_arr  
+                        data_arr[axis1_index[packet_loss.name], axis2_index[bandwidth.name]] = reduction(data.iloc[:,1].to_numpy())
+        
+        return axis1, axis2, data_arr 
+
+
+    
 def multivar_grapher( metric_list: dict, directory: Path, reduction: str="mean", graph_func1=None, graph_func2=None, graph_func3=None):
         fig_folder = directory / "Graphs"  
         if graph_func1:
@@ -543,14 +504,15 @@ def determineCoefficient(d1, d2):
     return corr
 
 #performs linear regression on two co-varying variables, to predict output metric value given a pair of these variable values
-def regressionGrad(self, X, y, reg_vals):
+def regressionGrad(self, X, y, reg_x1,reg_x2):
     #x - xlabels and y labels
     #y = metric
     regr = linear_model.LinearRegression()
     regr.fit(X, y)
     arr = []
-    for pair in range(len(reg_vals)):
-        predicted = regr.predict(list(pair))
+    for i in range(len(reg_x1)):
+    
+        predicted = regr.predict([[reg_x1[i], reg_x2[i]]])
         arr.append(predicted)
     return arr
 
@@ -581,9 +543,11 @@ def correlationCoefficients(self, p: Path, metric_list, vars = None):
 
 
 #runs regression on two co-varying independent variables - outputs in terminal
-def double_var_regress(self, p: Path, metric_list, reg_vals, metric):
+def double_var_regress(self, p: Path, metric_list, reg_x1, reg_x2, metric):
     metric_name = metric
     axis1, axis2, arr = read_multi_data(p, metric_name)
+
+
     print(arr)
     c = list(itertools.product(axis1, axis2))
     output = arr.flatten()
@@ -593,11 +557,14 @@ def double_var_regress(self, p: Path, metric_list, reg_vals, metric):
     df = pd.DataFrame({'x':c1, 'y':c2})
 
     df["output"] = output
-    df["output"] = (df["output"]  - df["output"].min()) /( df["output"].abs().max() - df["output"].min())
-
-
+    #normalize if putting values between 0 and 1
+    #df["output"] = (df["output"]  - df["output"].min()) /( df["output"].abs().max() - df["output"].min())
     
-    print(regressionGrad(self, df[["x","y"]],df["output"], reg_vals ))
+
+    print("x1 values: " , reg_x1)
+    print("x2 values: ", reg_x2)
+    print("Predicted " + metric + " values:")
+    print(regressionGrad(self, df[["x","y"]],df["output"], reg_x1, reg_x2 ))
 
 #runs line and bar charts for selected independent variables on selected metrics
 def single_var_charts(self, p: Path, metric_list, vars):
@@ -674,7 +641,8 @@ if __name__ == "__main__":
         #"errors" : None 
 
         #pairs of values from two independent variables to predict output metric value of
-        'regr_vals' : [(0, 10), (0.1, 20), (0.3, 20)],
+        'regr_x1' : [0,1,2,3],
+        'regr_x2' : [10,12,14,16],
 
         #metric to calculate regression
         'regr_metric' : "distfromRT"
