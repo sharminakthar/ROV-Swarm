@@ -19,8 +19,8 @@ from metrics.Heatmaps import GetHeatmap
 
 class Grapher():
     
+    #runs selected graphing functions based on user input
     def __init__(self, parameters: dict, outputFunc):
-    
         if outputFunc == double_var_charts:
             double_var_charts(self, parameters["path"], parameters["metrics"])
         elif outputFunc == doubleAxisGraph:
@@ -30,12 +30,13 @@ class Grapher():
         elif outputFunc == correlationCoefficients:
             correlationCoefficients(self, parameters["path"], parameters["metrics"], parameters["vars"])
         elif outputFunc == double_var_regress:
-            double_var_regress(self, parameters["path"], parameters["metrics"])
+            double_var_regress(self, parameters["path"], parameters["metrics"], parameters["regr_vals"], parameters["regr_metric"])
         elif outputFunc == single_var_charts:
             
             single_var_charts(self, parameters["path"], parameters["metrics"], parameters["vars"])
 
 
+    #retrieves data of single value from single variable
     def get_single_val_data(self, metric: BaseMetric, directory: Path) -> pd.DataFrame:
         """
         Calculates the values of the metric on at a single value.
@@ -62,6 +63,7 @@ class Grapher():
     
         return pd.DataFrame(results)
 
+    #retrieves data of all values of a variables
     def get_single_var_data(self, metric: BaseMetric, directory: Path, reduction="mean") -> dict[str, pd.DataFrame]:
         """
         Takes in a metric and a directory of a single variable and produces the metric data 
@@ -97,6 +99,8 @@ class Grapher():
         return ind_var_output
 
 
+
+    #retrieves data of all values of all variables
     def generate_data(self, metric_list: dict, directory: Path, reduction: str="mean", vars = None):
         data_folder = directory / "Metric_Data"
 
@@ -132,7 +136,7 @@ class Grapher():
                         v.to_csv(path_or_buf=(f / "metric_data.csv"), index=False)
 
     
-
+    #plots selected graph on each independent variable for each metric
     def graph_single_var(self, data_path: Path, metric_list: dict, graph_func, save_folder: str = None, vars = None, **kwargs):
         """
         Will graph all metrics on a single variable
@@ -163,6 +167,7 @@ class Grapher():
                     
 
 
+    #plots selected graph on two co-varting independent variables for each metric
     def graph_double_var(self, data_path: Path, metric_list: dict, graph_func, save_folder: str, **kwargs):
         """
         Will graph all metrics on two variables that are co-varying
@@ -188,6 +193,7 @@ class Grapher():
                     plt.close(fig)
 
     
+    #generates moving line chart - each value is average of adjacent points next to it for single independent variable
     def generate_smooth_line_chart(self, data, metric_info, var, adj_points=3):
 
         var_name = " ".join([w.capitalize() for w in var.split("_")])
@@ -211,6 +217,7 @@ class Grapher():
         return fig
 
 
+    #generates non-smoothed line chart for single independent variable
     def generate_line_chart(self, data, metric_info, var):
         var_name = " ".join([w.capitalize() for w in var.split("_")])
 
@@ -233,7 +240,8 @@ class Grapher():
 
         return fig
 
-    
+
+    #generates bar chart for single independent variable
     def generate_bar_chart(self, data, metric_info, var, bar_reduction="mean"):
         """
         bar_reduction is one of "mean", "sum", "last", "lastN"
@@ -260,6 +268,8 @@ class Grapher():
 
         return fig
 
+
+
 def read_multi_data( p: Path, metric_name="cdm", reduction="mean"):
     reduction = determine_bar_reduction(reduction)
     names = p.name.split("-")[1:]
@@ -277,7 +287,7 @@ def read_multi_data( p: Path, metric_name="cdm", reduction="mean"):
     axis2 = []
     for n in next(next(data_path.iterdir()).iterdir()).iterdir():
         
-        if (n.name  in ["00", "70", "80", "90", "60"]) == False:
+       # if (n.name  in ["00", "70", "80", "90", "60"]) == False:
             axis2.append(n.name)
     axis2_index = {n:i for i,n in enumerate(axis2)}
     
@@ -295,7 +305,7 @@ def read_multi_data( p: Path, metric_name="cdm", reduction="mean"):
         axis2 = []
         for n in next(next(data_path.iterdir()).iterdir()).iterdir():
            
-            if (n.name  in ["00", "70", "80", "90", "60"]) == False:
+           # if (n.name  in ["00", "70", "80", "90", "60"]) == False:
                 axis2.append(n.name)
         axis2_index = {n:i for i,n in enumerate(axis2)}
         
@@ -320,8 +330,6 @@ def read_multi_data( p: Path, metric_name="cdm", reduction="mean"):
                         data = pd.read_csv(bandwidth / "metric_data.csv")
                         data_arr[axis1_index[(packet_loss.name)], axis2_index[(bandwidth.name)]] = reduction(data.iloc[:,1].to_numpy())
     return axis1, axis2, data_arr  
-
-
 def multivar_grapher( metric_list: dict, directory: Path, reduction: str="mean", graph_func1=None, graph_func2=None, graph_func3=None):
         fig_folder = directory / "Graphs"  
         if graph_func1:
@@ -356,8 +364,10 @@ def multivar_grapher( metric_list: dict, directory: Path, reduction: str="mean",
                     plt.close(fig)
 
 
-
+#bar reduction converts data of single value set for variable over the simulation into one data point. 
+#input string determines how it is converted
 def determine_bar_reduction(bar_reduction):
+
     func_dict = {
         "mean": np.mean,
         "sum": np.sum,
@@ -378,6 +388,7 @@ def determine_bar_reduction(bar_reduction):
     
     return func
 
+#generates heatmap of two co-varying independent variables
 def generate_multivar_heatmap( dataArray, xlabels, ylabels):
         #var1_name = " ".join([w.capitalize() for w in var1.split("_")])
         #var2_name = " ".join([w.capitalize() for w in var2.split("_")])
@@ -398,6 +409,7 @@ def generate_multivar_heatmap( dataArray, xlabels, ylabels):
         #plt.show()
         return fig
 
+#generates 3D bar chart of co-varying independent variables
 def generate_3Dbar( dataArray, ylabels, xlabels):
         #var1_name = " ".join([w.capitalize() for w in var1.split("_")])
         #var2_name = " ".join([w.capitalize() for w in var2.split("_")])
@@ -428,7 +440,7 @@ def generate_3Dbar( dataArray, ylabels, xlabels):
 
         return fig
 
-
+#generates surface plot of two co-varying independent variables
 def generate_surface_plot(dataArray, ylabels, xlabels):
     print(xlabels)
     #xlabels = [1.0, 0.88, 0.77, 0.65, 0.53,0.41,0.3,0.18,0.03]
@@ -455,11 +467,11 @@ def generate_surface_plot(dataArray, ylabels, xlabels):
     return fig
 
 
+# retrieves correlation coefficients of selected variables on selected metrics
 def getCorrelations( metric_list: dict, directory: Path, varList = None):
+
+
     data_path = directory/"Metric_Data"
-
-
-
     numOfMetrics = len(metric_list)
     allCoeffs = np.empty([0,numOfMetrics])
     vars = []
@@ -488,11 +500,8 @@ def getCorrelations( metric_list: dict, directory: Path, varList = None):
                 vals.append(meanVal)
                 labels.append(val.name)
                 
-            #print("VAR: ", var.name)
-            #print(determineCoefficient(labels, vals))
+     
             coeffs.append(determineCoefficient(labels, vals))
-
-        #print(var.name)
 
         if len(coeffs) != len(metric_list):
             print("MISSING METRIC")
@@ -500,7 +509,6 @@ def getCorrelations( metric_list: dict, directory: Path, varList = None):
         else:
             allCoeffs = np.vstack([allCoeffs, coeffs])
 
-    #print(allCoeffs)
     allCoeffs = zip(*allCoeffs)
 
     i = 0
@@ -518,6 +526,8 @@ def getCorrelations( metric_list: dict, directory: Path, varList = None):
             j-= 1
 
         print("")
+
+#used in getCorrelations to sort one list w.r.t another
 def sort_list(list1, list2):
  
     zipped_pairs = zip(list2, list1)
@@ -527,24 +537,24 @@ def sort_list(list1, list2):
     return z 
 
 
+#performs spearman rank correlation
 def determineCoefficient(d1, d2):
     corr, _ = spearmanr(d1,d2)
     return corr
 
-
-def regressionGrad(self, X, y):
+#performs linear regression on two co-varying variables, to predict output metric value given a pair of these variable values
+def regressionGrad(self, X, y, reg_vals):
     #x - xlabels and y labels
     #y = metric
     regr = linear_model.LinearRegression()
     regr.fit(X, y)
-    predicted = regr.predict([[90, 1]])
     arr = []
-    for x in range(10):
-        predicted = regr.predict([[x*10, 2.2 - (x/10) * 2]])
-        arr.append(1 - predicted)
+    for pair in range(len(reg_vals)):
+        predicted = regr.predict(list(pair))
+        arr.append(predicted)
     return arr
 
-
+#calls and generates all graphs for co-varying independent variables
 def double_var_charts(p: Path, metric_list):  
     Grapher.generate_data(metric_list, p)
     Grapher.graph_double_var(p / "Metric_Data", metric_list, Grapher.generate_multivar_heatmap)
@@ -552,25 +562,29 @@ def double_var_charts(p: Path, metric_list):
     Grapher.graph_double_var(p / "Metric_Data", metric_list, Grapher.generate_surface_plot)
     double_var_regress(p / "Metric_Data", metric_list)
 
+#runs double-axis grapehr
 def doubleAxisGraph(self, p, mission, var, metric1, metric2, run, errors ):
     Grapher.generate_data(self, metric_list, p, vars)
 
     b = DAG(p, mission, var, metric1, metric2, run, errors)
 
+#runs heatmap grapher
 def heatmaps(self, p, mission, var, run, errors):
 
     GetHeatmap(p,mission,var,run, errors)
 
 
+#retrieves correlation coefficients and prints them in terminal
 def correlationCoefficients(self, p: Path, metric_list, vars = None):
     Grapher.generate_data(self, metric_list, p, vars)
     getCorrelations(metric_list, p, vars)
 
 
-def double_var_regress(p: Path, metric_list):
-    metric_name = "distfromRT"
-    axis1, axis2, arr = Grapher.graph_double_var(p, metric_list)
-    
+#runs regression on two co-varying independent variables - outputs in terminal
+def double_var_regress(self, p: Path, metric_list, reg_vals, metric):
+    metric_name = metric
+    axis1, axis2, arr = read_multi_data(p, metric_name)
+    print(arr)
     c = list(itertools.product(axis1, axis2))
     output = arr.flatten()
     c1 = list(zip(*c))[0]
@@ -581,8 +595,11 @@ def double_var_regress(p: Path, metric_list):
     df["output"] = output
     df["output"] = (df["output"]  - df["output"].min()) /( df["output"].abs().max() - df["output"].min())
 
-    print(regressionGrad(df[["x","y"]],df["output"] ))
 
+    
+    print(regressionGrad(self, df[["x","y"]],df["output"], reg_vals ))
+
+#runs line and bar charts for selected independent variables on selected metrics
 def single_var_charts(self, p: Path, metric_list, vars):
     Grapher.generate_data(self, metric_list, p, vars = vars)
     Grapher.graph_single_var(self, p / "Metric_Data",metric_list, Grapher.generate_line_chart, vars = vars)
@@ -590,17 +607,17 @@ def single_var_charts(self, p: Path, metric_list, vars):
 
 
 if __name__ == "__main__":
-    p = Path("out/RACETRACK_EXTENDED")
 
-
+    #path of data folder
+    p = Path("out/RACETRACK_MULTI_COMM_FLOCK_SIZE\FLOCK_SIZE-PACKET_LOSS")
 
 
     #selected output function
     outputs = {
-        #Double independent variable graphs
+        #co-varying independent variable grapher
         '1' : double_var_charts,
 
-        #generate line graph for variable with two different metrics
+        #generate line graphs for variable with two different metrics
         '2' : doubleAxisGraph,
 
         #generate heatmaps of swarm paths
@@ -612,7 +629,7 @@ if __name__ == "__main__":
         #generate projected value of two associated independent variables for a given metric
         '5' : double_var_regress,
 
-        #
+        #bar and line charts for single independent variable data
         '6' : single_var_charts
     }
 
@@ -621,22 +638,28 @@ if __name__ == "__main__":
                  "RANGE_ERROR", "BEARING_ERROR", "ACCELERATION_ERROR", "SPEED_CALIBRATION_ERROR",
                  "HEADING_CALIBRATION_ERROR", "RANGE_CALIBRATION_ERROR", "BEARING_CALIBRATION_ERROR",
                  "ACCELERATION_CALIBRATION_ERROR"]
+    #vars
 
     parameters = {
 
-        #directory of multi-sim data
+        #directory of data
         'path' : p,
-        #metrics to be analyse
+        
+        
+        #metrics to be analyse, see MetricList.py
         'metrics' : metric_list,
+        
+        
         #vars to analyse, leave as None for all vars in directory
         #'vars' : None,
         'vars' : ["HEADING_CALIBRATION_ERROR", "BEARING_CALIBRATION_ERROR"],
-        #mission used for data collection
+        
+        #mission used for data collection - used only for heatmaps grapher
         'mission' : "RACETRACK",
         #'mission' : "FOLLOW_CIRCLE",
         #'mission' : "FIXED_HEADING",
         
-        #single var to analyse if using Double axis or Heatmap function
+        #single var to analyse - used only in Double axis or Heatmap grapher
         'single_var' : "HEADING_CALIBRATION_ERROR",
 
         #run instance if using double axis or heatmap function
@@ -650,10 +673,15 @@ if __name__ == "__main__":
         "errors" : ["0", "30", "10", "40"],
         #"errors" : None 
 
+        #pairs of values from two independent variables to predict output metric value of
+        'regr_vals' : [(0, 10), (0.1, 20), (0.3, 20)],
+
+        #metric to calculate regression
+        'regr_metric' : "distfromRT"
     }
 
 
-    grapher = Grapher(parameters, outputs["4"])
+    grapher = Grapher(parameters, outputs["5"])
 
     
 
@@ -763,11 +791,6 @@ if __name__ == "__main__":
 
     
     '''
-    #getCorrelations(metric_list, p)         
-        #fig = generate_3DBarChart(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
-        
-    #generate_MultiVar_heatmap(arr.astype(float), np.array(axis1).astype(float), np.array(axis2).astype(float))
-
-    
+   
 
 
