@@ -6,7 +6,7 @@ from BaseMetric import BaseMetric
 from pandas import DataFrame
 from pandas import *
 
-class CollisionNumber(BaseMetric):
+class CollisionsNumber(BaseMetric):
 
     def __init__(self):
         super().__init__()
@@ -19,27 +19,24 @@ class CollisionNumber(BaseMetric):
 
         df["Distances"] = distances
 
-        df1 = df.loc[df["Distances"] < 7.5, 'Less_than_separation_distance'] = 'True'
-        df1 = df.loc[df["Distances"] >= 7.5, 'Less_than_separation_distance'] = 'False'
+        df.loc[df["Distances"] < 7.5, 'Less_than_separation_distance'] = 'True'
+        df.loc[df["Distances"] >= 7.5, 'Less_than_separation_distance'] = 'False'
 
         collisions = df.Less_than_separation_distance[df.Less_than_separation_distance==True].count()
-
-        df["Collisions"] = collisions
-        df = df[["Timestep_x", "Collisions"]]
-        return(df)
-
+        return(collisions)
 
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
         df = data[["Timestep" ,"Drone ID", "X Position", "Y Position"]]     
         print("grouping and applying")
 
-        df= df.groupby('Timestep').apply(self.myfunction)
+        df= df.groupby('Timestep').apply(self.myfunction).reset_index()
+        df = df.rename(index={0: "Timestep", 1: "Collisions"})
 
         print(df)
         return(df)
 
 if __name__ == "__main__":
-    metric = CollisionNumber()
+    metric = CollisionsNumber()
 
     # Replace path name with absolute path if not running from inside the metrics folder
     path_name = "/Users/sharmin/Desktop/GDP/swarm-simulator/out/BANDWIDTH"
