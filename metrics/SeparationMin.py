@@ -5,25 +5,25 @@ from pathlib import Path
 from BaseMetric import BaseMetric
 from pandas import DataFrame
 from pandas import *
+import time
 
 class SeparationMin(BaseMetric):
 
     def __init__(self):
         super().__init__()
 
-    def myfunction(self, data: pd.DataFrame) -> pd.DataFrame:
-        df = data.merge(data, how="cross")
-        df = df.loc[df["Drone ID_x"] < df["Drone ID_y"]]
+    def myfunction(self, df: pd.DataFrame) -> pd.DataFrame:
+        la, lb = len(df), len(df)
+        ia2, ib2 = np.broadcast_arrays(*np.ogrid[:la,:lb])
+        x = np.column_stack([df.values[ia2.ravel(),1:], df.values[ib2.ravel(),1:]])
+        distances = np.linalg.norm(x[:,:2] - x[:,2:])
 
-        distances = np.sqrt( ((df["X Position_x"] - df["X Position_y"]).pow(2)) + ((df["Y Position_x"] - df["Y Position_y"]).pow(2)))
-
-        min_distance = distances.min()
-        return(pd.Series([df["Timestep_x"].iloc[0], min_distance]))
+        return distances.min()
 
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
-        df = data[["Timestep" ,"Drone ID", "X Position", "Y Position"]]     
+        df = data[["Timestep", "X Position", "Y Position"]]     
         print("grouping and applying")
-        df1= df.groupby('Timestep').apply(self.myfunction)
+        df1= df.groupby('Timestep').apply(self.myfunction).reset_index()
 
         #print(df1)
         return(df1)
