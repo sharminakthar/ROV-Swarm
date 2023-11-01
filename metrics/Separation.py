@@ -40,7 +40,7 @@ if __name__ == "__main__":
     metric = Separation(reduction="min")
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "/Users/sharmin/Desktop/GDP/swarm-simulator/out/SPEED_ERROR"
+    path_name = "../FOLLOW_CIRCLE_EXTENDED/SPEED_ERROR"
     p = Path(path_name)
 
     data = metric.run_metric(p)

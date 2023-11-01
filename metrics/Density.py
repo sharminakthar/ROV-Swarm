@@ -43,7 +43,7 @@ if __name__ == "__main__":
     metric = Density()
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "../out/FLOCK_SIZE"
+    path_name = "../FOLLOW_CIRCLE_EXTENDED/FLOCK_SIZE"
     p = Path(path_name)
     data = metric.run_metric(p)
     
