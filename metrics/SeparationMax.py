@@ -16,9 +16,6 @@ class SeparationMax(BaseMetric):
         df = df.loc[df["Drone ID_x"] < df["Drone ID_y"]]
 
         distances = np.sqrt( ((df["X Position_x"] - df["X Position_y"]).pow(2)) + ((df["Y Position_x"] - df["Y Position_y"]).pow(2)))
-        distances = distances[distances > 0]
-        # df["Distances"] = distances
-        #df = df[["Timestep_x", "Drone ID_x", "Drone ID_y", "Distances"]]
 
         max_distance = distances.max()
         return(pd.Series([df["Timestep_x"].iloc[0], max_distance]))
