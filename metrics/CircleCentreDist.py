@@ -27,7 +27,7 @@ class circlecentedist(BaseMetric):
         return df
 
 if __name__ == "__main__":
-    metric = circlecentedist()
+    metric = circleCentreDist()
 
     # Replace path name with absolute path if not running from inside the metrics folder
     path_name = "../out/FOLLOW_CIRCLE_ULTRA_EXTENDED_DATA/FLOCK_SIZE"
