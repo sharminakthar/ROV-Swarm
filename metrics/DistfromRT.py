@@ -15,7 +15,7 @@ class distfromRT(BaseMetric):
         data = data.sum(axis = 0)
         swarmcentre = data/x
         if swarmcentre["X Position"]<2000:
-            distance = abs(1000 - math.hypot(2500 - swarmcentre["X Position"], 2500 - swarmcentre["Y Position"]))
+            distance = abs(1000 - math.hypot(2000 - swarmcentre["X Position"], 3000 - swarmcentre["Y Position"]))
         elif swarmcentre["X Position"]>3500:
             distance = abs(100 - math.hypot(3500 - swarmcentre["X Position"], 3000 - swarmcentre["Y Position"]))
         elif swarmcentre["Y Position"]<3000:
