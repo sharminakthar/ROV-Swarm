@@ -11,7 +11,8 @@ from util.metrics_helpers import get_metrics_definitions, get_metrics_formats
 
 class Simulator:
 
-    def __init__(self, settings : FlockSettings, steps: int):
+    def __init__(self, settings : FlockSettings, steps: int=0):
+        self.steps = steps
         self.step = 0               
         self.flock = self.__create_new_flock(settings)
         self.metric_definitions = get_metrics_definitions(self.flock) 
@@ -57,20 +58,31 @@ class Simulator:
         return pd.DataFrame(data=data)
 
     def update_raw_data(self):
+
         [x_positions, y_positions] = self.flock.get_positions()
         [x_velocities, y_velocities] = self.flock.get_velocities()
         [x_approx_positions, y_approx_positions] = self.flock.get_approx_positions()
 
-        change_range_1 = self.step * self.flock.get_size()
-        change_range_2 = (self.step + 1) * self.flock.get_size()
-        self.raw_data_log["Timestep"][change_range_1 : change_range_2] = [self.step for _ in range(self.flock.get_size())]
-        self.raw_data_log["Drone ID"][change_range_1 : change_range_2] = (list(range(0, self.flock.get_size())))
-        self.raw_data_log["X Position"][change_range_1 : change_range_2] = x_positions
-        self.raw_data_log["Y Position"][change_range_1 : change_range_2] = y_positions
-        self.raw_data_log["X Velocity"][change_range_1 : change_range_2] = x_velocities
-        self.raw_data_log["Y Velocity"][change_range_1 : change_range_2] = y_velocities
-        self.raw_data_log["X Approx Position"][change_range_1 : change_range_2] = x_approx_positions
-        self.raw_data_log["Y Approx Position"][change_range_1 : change_range_2] = y_approx_positions
+        if self.steps != 0:
+            change_range_1 = self.step * self.flock.get_size()
+            change_range_2 = (self.step + 1) * self.flock.get_size()
+            self.raw_data_log["Timestep"][change_range_1 : change_range_2] = [self.step for _ in range(self.flock.get_size())]
+            self.raw_data_log["Drone ID"][change_range_1 : change_range_2] = (list(range(0, self.flock.get_size())))
+            self.raw_data_log["X Position"][change_range_1 : change_range_2] = x_positions
+            self.raw_data_log["Y Position"][change_range_1 : change_range_2] = y_positions
+            self.raw_data_log["X Velocity"][change_range_1 : change_range_2] = x_velocities
+            self.raw_data_log["Y Velocity"][change_range_1 : change_range_2] = y_velocities
+            self.raw_data_log["X Approx Position"][change_range_1 : change_range_2] = x_approx_positions
+            self.raw_data_log["Y Approx Position"][change_range_1 : change_range_2] = y_approx_positions
+        else:
+            self.raw_data_log["Timestep"] = np.concatenate([self.raw_data_log["Timestep"], np.array([self.step for _ in range(self.flock.get_size())])])
+            self.raw_data_log["Drone ID"] = np.concatenate([self.raw_data_log["Drone ID"], np.array(list(range(0, self.flock.get_size())))])
+            self.raw_data_log["X Position"] = np.concatenate([self.raw_data_log["X Position"], x_positions])
+            self.raw_data_log["Y Position"] = np.concatenate([self.raw_data_log["Y Position"], y_positions])
+            self.raw_data_log["X Velocity"] = np.concatenate([self.raw_data_log["X Velocity"], x_velocities])
+            self.raw_data_log["Y Velocity"] = np.concatenate([self.raw_data_log["Y Velocity"], y_velocities])
+            self.raw_data_log["X Approx Position"] = np.concatenate([self.raw_data_log["X Approx Position"],x_approx_positions])
+            self.raw_data_log["Y Approx Position"] = np.concatenate([self.raw_data_log["Y Approx Position"],y_approx_positions])
 
     def get_metrics_log(self):
         return self.metrics_log
@@ -78,11 +90,12 @@ class Simulator:
     def get_raw_data_log(self):
         return pd.DataFrame(data=self.raw_data_log)
 
-    def update(self, log_data=False):
+    def update(self, log_data=False, log_raw_data=True):
         self.flock.update(self.step)
         
         if(log_data):
-            # self.metrics_log = pd.concat([self.metrics_log , self.get_metrics_data_frame()])
+            self.metrics_log = pd.concat([self.metrics_log , self.get_metrics_data_frame()])
+        if(log_raw_data):
             self.update_raw_data()
         
         self.step += 1
