@@ -45,11 +45,14 @@ if __name__ == "__main__":
     metric = OrientationMetric()
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "../out/FLOCK_SIZE"
+    path_name = "/Users/sharmin/Desktop/GDP/swarm-simulator/out/RANGE_ERROR"
     p = Path(path_name)
 
     data = metric.run_metric(p)
     for k,d in data.items():
         plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=k)
     plt.legend()
+    plt.title("Standard deviation of rientations with varying Range error")
+    plt.xlabel("Timestep")
+    plt.ylabel("Standard deviation of orientations")
     plt.show()
