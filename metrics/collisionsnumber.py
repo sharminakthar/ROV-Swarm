@@ -5,6 +5,7 @@ from pathlib import Path
 from BaseMetric import BaseMetric
 from pandas import DataFrame
 from pandas import *
+from matplotlib import pyplot as plt
 
 class CollisionsNumber(BaseMetric):
 
@@ -32,15 +33,18 @@ class CollisionsNumber(BaseMetric):
         df= df.groupby('Timestep').apply(self.myfunction).reset_index()
         df = df.rename(columns={0: "Collisions"})
 
-        print(df)
+        #print(df)
         return(df)
 
 if __name__ == "__main__":
     metric = CollisionsNumber()
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "/Users/sharmin/Desktop/GDP/swarm-simulator/out/BANDWIDTH"
+    path_name = "/Users/sharmin/Desktop/GDP/swarm-simulator/out/FLOCK_SIZE"
     p = Path(path_name)
     print("running")
     data = metric.run_metric(p)
-    print(metric.std(data[0]))
+    for k,d in data.items():
+        plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=k)
+    plt.legend()
+    plt.show()
