@@ -23,11 +23,15 @@ if __name__ == "__main__":
     metric = PerceivedPosMetric()
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "../out2/HEADING_ERROR"
+    path_name = "../out/SPEED_ERROR"
     p = Path(path_name)
 
     data = metric.run_metric(p)
     for k,d in data.items():
         plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=k)
+    plt.title("Error Between Actual Position and Approximated Position \n With Varying Speed Error")
+    plt.xlabel("Timestep (s)")
+    plt.ylabel("Position Error (m)")
     plt.legend()
+    plt.savefig("..\\..\\..\\Figures\\speed_per_pos.png")
     plt.show()
