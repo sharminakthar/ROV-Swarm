@@ -59,15 +59,22 @@ class BaseMetric(ABC):
     def max(self, data: pd.DataFrame) -> pd.DataFrame:
         return np.max(data.iloc[:, 1])
 
-    def min():
+    def min(self, data: pd.DataFrame) -> pd.DataFrame:
         return np.min(data.iloc[:, 1])
 
 
-    def std():
+    def std(self, data: pd.DataFrame) -> pd.DataFrame:
         return np.std(data.iloc[:, 1])
 
 
-    def mean():
+    def mean(self, data: pd.DataFrame) -> pd.DataFrame:
         return np.mean(data.iloc[:, 1])
+
+    def median(self, data: pd.DataFrame) -> pd.DataFrame:
+        return np.median(data.iloc[:, 1])
+
+
+    def mode(self, data: pd.DataFrame) -> pd.DataFrame:
+        return np.mod(data.iloc[:, 1])
 
 
