@@ -12,21 +12,21 @@ class SeparationMin(BaseMetric):
         super().__init__()
 
     def myfunction(self, data: pd.DataFrame) -> pd.DataFrame:
-        df = data[["Timestep" ,"Drone ID", "X Position", "Y Position"]]
-        df = df.merge(df, how='cross')
+        df = data.merge(data, how='cross')
 
         distances = np.sqrt( ((df["X Position_x"] - df["X Position_y"]).pow(2)) + ((df["Y Position_x"] - df["Y Position_y"]).pow(2)))
-        df["Distances"] = distances
-        df = df[["Timestep_x", "Drone ID_x", "Drone ID_y", "Distances"]]
+        distances = distances[distances > 0]
+        # df["Distances"] = distances
+        #df = df[["Timestep_x", "Drone ID_x", "Drone ID_y", "Distances"]]
 
-        min_distance = df.loc[df['Distances']>0, 'Distances'].min()
-        df["Minimum Separation"] = min_distance
-        df = df[["Timestep_x", "Minimum Separation"]]
-        return(df.iloc[0])
+        min_distance = distances.min()
+        #df["Minimum Separation"] = min_distance
+        #df = df[["Timestep_x", "Minimum Separation"]]
+        return(pd.Series([df["Timestep_x"].iloc[0], min_distance]))
 
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
         df = data[["Timestep" ,"Drone ID", "X Position", "Y Position"]]     
-
+        print("grouping and applying")
         df1= df.groupby('Timestep').apply(self.myfunction)
 
         #print(df1)
@@ -36,9 +36,9 @@ if __name__ == "__main__":
     metric = SeparationMin()
 
     # Replace path name with absolute path if not running from inside the metrics folder
-    path_name = "/Users/sharmin/Desktop/GDP/swarm-simulator/out/FLOCK_SIZE"
+    path_name = "../out/BANDWIDTH"
     p = Path(path_name)
-
+    print("running")
     data = metric.run_metric(p)
     print(metric.std(data[0]))
     
