@@ -26,5 +26,7 @@ class Speed(BaseMetric):
 
 if __name__ == "__main__":
     metric = Speed()
-    data = metric.run_metric(r"\Users\shinee\Desktop\EEE YEAR 4\GDP\clone\swarm-simulator\out\FLOCK_SIZE")
+    path_name = "../out/FLOCK_SIZE"
+    p = Path(path_name)
+    data = metric.run_metric(p)
     print(metric.std(data[0]))
