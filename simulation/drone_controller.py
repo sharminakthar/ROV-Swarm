@@ -16,7 +16,6 @@ class DroneController:
         self.separation_distance = settings.get(Setting.SEPARATION_DISTANCE)
         self.target_pos = np.array(
             [settings.get(Setting.TARGET_X), settings.get(Setting.TARGET_Y)]).reshape(2, 1)
-        print(settings.get(Setting.TARGET_X))
         self.target_radius = settings.get(Setting.TARGET_RADIUS)
         self.target_heading = settings.get(Setting.TARGET_HEADING)
         # attribute keeping track of how communication cycles a drone has not received a message from another drone
@@ -181,6 +180,8 @@ class DroneController:
             newCenter[0][0] -= l/2
         elif section == 3:
             newCenter[0][0] += l/2
+        else:
+            newCenter = center
 
    
         center_vec = normalize(pos - newCenter.reshape(2, 1))
@@ -193,17 +194,18 @@ class DroneController:
             x = -np.abs(x)
             y = m*x
         elif section == 2:
-            if float(pos[1][0]) > 0:
+            if float(pos[1][0] - newCenter[1][0]) > 0:
                 y = 1000
+                x = y/m
             else:
                 y = -1000
-            x = 1000/m            
+                x = y/m            
         else: 
             x = 1000/((m**2 + 1)**0.5)
             x = np.abs(x)
             y = m*x
 
-        
+  
         x += float(newCenter[0][0])
         y += float(newCenter[1][0])
 
