@@ -71,7 +71,7 @@ class Simulator:
         self.flock.update(self.step)
         
         if(log_data):
-            self.metrics_log = pd.concat([self.metrics_log , self.get_metrics_data_frame()])
+            # self.metrics_log = pd.concat([self.metrics_log , self.get_metrics_data_frame()])
             self.raw_data_log = pd.concat([self.raw_data_log, self.get_raw_data_frame()])
         
         self.step += 1
