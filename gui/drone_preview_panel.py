@@ -176,6 +176,9 @@ class DronePreviewPanel(wx.Panel):
             linestyle='-', color=self.get_marker_color(flock, i, s=.2, v=1, mothership_value=0.8))
             self.axes.add_patch(circle) 
 
+
+
+
     def draw_mission_specifics(self):
         settings = self.controller.settings
 
@@ -196,5 +199,15 @@ class DronePreviewPanel(wx.Panel):
         elif (drone_objective == DroneObjective.FIXED_HEADING):
             rect = Rectangle([0,0],10,100000,angle=-heading, fill=False, linewidth=0.5, linestyle='--')
             self.axes.add_patch(rect)
+        elif (drone_objective == DroneObjective.RACETRACK):
+            rect = Rectangle([1500,1500], 2000,2000)
+            circle1 = Circle([3500,2500], 1000)
+            circle2 = Circle([1500,2500], 1000)
+
+            self.axes.add_patch(rect)
+            self.axes.add_patch(circle1)
+            self.axes.add_patch(circle2)
+
+
 
         
