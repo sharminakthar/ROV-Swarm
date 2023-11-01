@@ -24,6 +24,6 @@ class CollisionTime(BaseMetric):
         return first_time
 
 if __name__ == "__main__":
-    metric = ExampleMetric()
+    metric = CollisionTime()
     data = metric.run_metric("..\\out\\FLOCK_SIZE")
     print(metric.std(data[0]))
