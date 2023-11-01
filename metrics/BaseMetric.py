@@ -13,14 +13,16 @@ class BaseMetric(ABC):
     def read_csv(self, csv_file: str) -> pd.DataFrame:
         pass
 
-    def run_metric(self, folder):
-        results = []
-        for run in os.listdir(folder):
+    def run_metric(self, folder) -> pd.DataFrame:
+        results = {}
+        for i, run in enumerate(os.listdir(folder)):
             data = pd.read_csv(run)
             result = self.calculate(data)
-            results.append(result)
+            if i == 0:
+                results["Timestep"] = result[0]
+            results[str(i)] = result[1]
         
-        return results
+        return pd.DataFrame(results)
 
     @abstractmethod
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
