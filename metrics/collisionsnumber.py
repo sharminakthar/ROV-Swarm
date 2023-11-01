@@ -20,8 +20,8 @@ class CollisionsNumber(BaseMetric):
 
         df["Distances"] = distances
 
-        df.loc[df["Distances"] < 7.5, 'Less_than_separation_distance'] = True
-        df.loc[df["Distances"] >= 7.5, 'Less_than_separation_distance'] = False
+        df.loc[df["Distances"] < 75, 'Less_than_separation_distance'] = True
+        df.loc[df["Distances"] >= 75, 'Less_than_separation_distance'] = False
 
         collisions = df.Less_than_separation_distance[df.Less_than_separation_distance==True].count()
         return(collisions)
@@ -44,7 +44,13 @@ if __name__ == "__main__":
     p = Path(path_name)
     print("running")
     data = metric.run_metric(p)
+    # "list comprehension"
+    heights = {k:0 for k in data.keys()}
     for k,d in data.items():
-        plt.plot(d["Timestep"], d.loc[:, d.columns != "Timestep"].mean(axis=1), label=k)
+        val = d.loc[:, d.columns != "Timestep"].to_numpy().sum() /( d.shape[1] -1 )
+        heights[k] = val
+    plt.bar(heights.keys(), heights.values())
     plt.legend()
+    plt.xlabel("Flock size")
+    plt.ylabel("Total number of collisions")
     plt.show()
