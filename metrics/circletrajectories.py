@@ -19,6 +19,7 @@ class CircleTrajectoryMetric(BaseMetric):
         r = 1000
         df1 = abs(df["X Position"] - targx)
         df2 = abs(df["Y Position"] - targy)
+        print((df1.multiply(df1, fill_value=0) + df2.multiply(df2, fill_value=0))**0.5 - r)
         return (df1.multiply(df1, fill_value=0) + df2.multiply(df2, fill_value=0))**0.5 - r
 
 
