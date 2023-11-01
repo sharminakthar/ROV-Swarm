@@ -1,3 +1,10 @@
+import os
+import sys
+
+'''sys.path.append(os.getcwd() + "\metrics")
+print(os.getcwd())'''
+
+print(os.getcwd())
 from BaseMetric import BaseMetric
 import pandas as pd
 
