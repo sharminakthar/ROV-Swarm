@@ -1,5 +1,5 @@
 from pathlib import Path
-from BaseMetric import BaseMetric
+from .BaseMetric import BaseMetric
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
@@ -18,7 +18,6 @@ class CentreDistMetric(BaseMetric):
         distances = np.sqrt(((df["X Position"] - df["X Centre"]).pow(2) + (df["Y Position"] - df["Y Centre"]).pow(2)))
         df["Distances"] = distances
         df = df[["Timestep", "Distances"]].groupby("Timestep").mean().reset_index()
-        print(df)
         return df
 
 if __name__ == "__main__":
