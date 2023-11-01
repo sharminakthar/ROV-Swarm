@@ -32,7 +32,7 @@ class BaseMetric(ABC):
             
             #ind_var_output.append(pd.DataFrame(results))
             ind_var_output[ind_var.name] = pd.DataFrame(results)
-        
+            
         return ind_var_output
 
     @abstractmethod

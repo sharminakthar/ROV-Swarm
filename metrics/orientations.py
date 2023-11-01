@@ -9,18 +9,15 @@ class OrientationMetric(BaseMetric):
 
     def __init__(self):
         super().__init__()
-    
-    def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
-        df = data[["Timestep", "X Velocity", "Y Velocity"]]
-       
-        xvels = df["X Velocity"]
-        yvels = df["Y Velocity"]
+
+
+
+    def getOrientations(self, data: pd.DataFrame) -> pd.DataFrame:
+        xvels = data.iloc[:, 1]
+        yvels = data.iloc[:, 2]
         bearing = 0
         bearings = []
         for x in range(len(xvels)):
-           
-               
-
             if int(yvels[x] )== 0 or int(xvels[x]) == 0:
                 angle = 0
             else:
@@ -35,11 +32,18 @@ class OrientationMetric(BaseMetric):
             elif int(xvels[x]) >= 0 and int(yvels[x]) >= 0:
                 bearing = (90 - angle)
             bearings.append(bearing)
+        return bearings
+    
+    def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
+        df = data[["Timestep", "X Velocity", "Y Velocity"]]
+        bearings = self.getOrientations(df)
         df = df[["Timestep"]]
         new_df = df.assign(Orientations = bearings)
         groups = new_df.groupby("Timestep").std()
         df = df.merge(groups, on="Timestep")
         return df
+
+   
 
 if __name__ == "__main__":
     metric = OrientationMetric()
