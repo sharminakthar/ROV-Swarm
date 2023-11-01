@@ -1,7 +1,7 @@
 import pandas as pd
 from abc import ABC, abstractmethod
-import os
 import numpy as np
+from pathlib import Path
 
 class BaseMetric(ABC):
     """
@@ -11,7 +11,7 @@ class BaseMetric(ABC):
     def __init__(self):
         pass
 
-    def run_metric(self, folder):
+    def run_metric(self, folder: Path):
         """
         
         Returns
@@ -19,13 +19,11 @@ class BaseMetric(ABC):
             dataframes contain one column for timestep, and n columns for eachr run. 
         """
         ind_var_output = []
-        for ind_var in os.listdir(folder):
-            ind_var = folder + "\\" + ind_var
+        for ind_var in folder.iterdir():
             results = {}
-            dirs = os.listdir(ind_var)
-            dirs = list(filter(lambda x: x != "metadata.csv", dirs))
+            dirs = filter(lambda x: x.is_dir(), ind_var.iterdir())
             for i, run in enumerate(dirs):
-                run = ind_var + "\\" + run + "\\" + "raw_data_log.csv"
+                run = run / "raw_data_log.csv"
                 data = pd.read_csv(run)
                 result = self.calculate(data)
                 if i == 0:
