@@ -4,19 +4,16 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import math
-from .Helper_Functions import HelperFunctions
+from .Helper_Functions import getOrientations
 
 class OrientationMetric(BaseMetric):
 
     def __init__(self):
         super().__init__()
 
-
-
-    
     def calculate(self, data: pd.DataFrame) -> pd.DataFrame:
         df = data[["Timestep", "X Velocity", "Y Velocity"]]
-        bearings = HelperFunctions.getOrientations(df)
+        bearings = getOrientations(df)
         df = df[["Timestep"]]
         new_df = df.assign(Orientations = bearings)
         groups = new_df.groupby("Timestep").std()
